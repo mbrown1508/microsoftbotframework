@@ -1,7 +1,7 @@
+# Microsoft Bot Framework
 Microsoft Bot Framework is a wrapper for the Microsoft Bot API by Microsoft
 
-To run this app
--------------------
+## To run this app
 1. Create a microsoft chatbot - https://dev.botframework.com/bots
 2. Generate <Microsoft App ID> and <Microsoft App Secret> then update config.ini
 ```
