@@ -1,0 +1,8 @@
+[DEFAULT]
+app_client_id: <Microsoft App ID>
+app_client_secret: <Microsoft App Secret>
+response_auth_url: https://login.microsoftonline.com/common/oauth2/v2.0/token
+
+[CELERY]
+celery_result_backend: redis://localhost:6379
+celery_broker_url: redis://localhost:6379

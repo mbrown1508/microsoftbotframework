@@ -1,0 +1,1 @@
+celery -A microsoftbotframework.msbot.celery worker --loglevel=info
