@@ -1,4 +1,3 @@
-__author__ = 'Matthew'
 from flask import Flask, request
 from microsoftbotframework.helpers import ConfigSectionMap
 from celery.local import PromiseProxy
@@ -12,8 +11,7 @@ class MsBot:
 
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
-            #TODO: Verfiy if message is from microsoft or Emulator
-
+            # TODO: Confirm that it is from microsoft
             json_message = request.get_json()
             for process in self.processes:
                 if isinstance(process, PromiseProxy):
@@ -30,5 +28,5 @@ class MsBot:
         self.app.run()
 
     def auto_load(self):
+        #TODO: Autoload packages in tasks.py
         pass
-        # TODO: Check for any methods in tasks and autoload them

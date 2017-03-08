@@ -16,7 +16,7 @@ To start the server run python main.py
 ##### Configure Async Tasks
 To use celery install and configure celery and its backend and run
 ```sh
-celery -A microsoftbotframework.msbot.celery worker --loglevel=info
+celery -A microsoftbotframework.runcelery.celery worker --loglevel=info
 ```
     
 ## Configure
@@ -43,5 +43,3 @@ This method will be executed asynchronously. Several Celery decorators are avail
 def AsyncTask(message):
     sleep(10)
 ```
-## Response Object
-TODO
