@@ -12,6 +12,8 @@ class MsBot:
 
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
+            #TODO: Verfiy if message is from microsoft or Emulator
+
             json_message = request.get_json()
             for process in self.processes:
                 if isinstance(process, PromiseProxy):
@@ -26,3 +28,7 @@ class MsBot:
 
     def run(self):
         self.app.run()
+
+    def auto_load(self):
+        pass
+        # TODO: Check for any methods in tasks and autoload them

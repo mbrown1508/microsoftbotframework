@@ -43,3 +43,5 @@ This method will be executed asynchronously. Several Celery decorators are avail
 def AsyncTask(message):
     sleep(10)
 ```
+## Response Object
+TODO

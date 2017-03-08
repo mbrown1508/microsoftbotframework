@@ -38,6 +38,7 @@ class Response:
 
     def reply_to_activity(self, message, serviceUrl=None,channelId=None,replyToId=None,fromInfo=None,
                 recipient=None,type=None,conversation=None):
+        # TODO: Confirm Authenticate is working
         #self.authenticate()
 
         conversation_id = self['conversation']["id"] if conversation is None else conversation['id']

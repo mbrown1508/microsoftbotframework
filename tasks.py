@@ -12,5 +12,7 @@ def RespondToConversationUpdate(message):
         message_response = message["text"]
         response.reply_to_activity(message_response)
 
-def NormalTask(message):
+# TODO: Method to respond using a chaterbot library
+def ChatBotRespond(message):
     pass
+
