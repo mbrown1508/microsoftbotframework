@@ -1,3 +1,4 @@
+import microsoftbotframework.runcelery
 from microsoftbotframework.msbot import MsBot
 from tasks import *
 

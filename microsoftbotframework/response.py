@@ -1,4 +1,3 @@
-__author__ = 'Matthew'
 import requests, datetime
 from microsoftbotframework.helpers import ConfigSectionMap
 
