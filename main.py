@@ -3,6 +3,6 @@ from microsoftbotframework.msbot import MsBot
 from tasks import *
 
 bot = MsBot()
-bot.add_process(RespondToConversationUpdate)
-bot.add_process(ChatBotRespond)
+bot.add_process(respond_to_conversation_update)
+bot.add_process(echo_response)
 bot.run()

@@ -1,11 +1,9 @@
 import requests, datetime
-from microsoftbotframework.helpers import ConfigSectionMap
+import os
 
 class Response:
     def __init__(self, data):
-        self.config = ConfigSectionMap('DEFAULT')
         self.data = data
-        self.headers = None
 
     def __getitem__(self, key):
         try:return self.data[key]
@@ -25,25 +23,28 @@ class Response:
         return True if key in self.data else False
 
     def authenticate(self):
-        data = {"grant_type":"client_credentials",
-                "client_id":self.config['app_client_id'],
-                "client_secret":self.config['app_client_secret'],
-                "scope":"https://graph.microsoft.com/.default"
+        response_auth_url = "https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token"
+        data = {"grant_type": "client_credentials",
+                "client_id": os.environ['APP_CLIENT_ID'],
+                "client_secret": os.environ['APP_CLIENT_SECRET'],
+                "scope": "https://api.botframework.com/.default"
                }
-        response = requests.post(self.config['response_auth_url'],data)
+        response = requests.post(response_auth_url, data)
         resData = response.json()
 
-        self.headers = {"Authorization":"{} {}".format(resData["token_type"],resData["access_token"])}
+        self.headers = {"Authorization": "{} {}".format(resData["token_type"], resData["access_token"])}
 
-    def reply_to_activity(self, message, serviceUrl=None,channelId=None,replyToId=None,fromInfo=None,
-                recipient=None,type=None,conversation=None):
-        # TODO: Confirm Authenticate is working
-        #self.authenticate()
+    def reply_to_activity(self, message, serviceUrl=None, channelId=None, replyToId=None, fromInfo=None,
+                recipient=None, type=None, conversation=None):
+        if os.environ['ENVIRONMENT'] == 'PROD':
+            self.authenticate()
+        else:
+            self.headers = None
 
         conversation_id = self['conversation']["id"] if conversation is None else conversation['id']
         replyToId = self['id'] if replyToId is None else replyToId
 
-        responseURL = "{}/v3/conversations/{}/activities/{}".format(self["serviceUrl"], conversation_id, replyToId)
+        responseURL = "{}{}v3/conversations/{}/activities".format(self["serviceUrl"], '/' if os.environ['ENVIRONMENT'] == 'DEV' else '',conversation_id, replyToId)
 
         response_json = {
             "from": self["recipient"] if fromInfo is None else fromInfo,
@@ -55,4 +56,4 @@ class Response:
             "replyToId": replyToId
         }
 
-        requests.post(responseURL,json=response_json,headers=self.headers)
+        requests.post(responseURL, json=response_json, headers=self.headers)

@@ -1,10 +1,11 @@
 from flask import Flask
 from celery import Celery
-from microsoftbotframework.helpers import ConfigSectionMap
+import os
+
 
 def make_celery(app):
-    celery = Celery(app.import_name, backend=app.config['CELERY_RESULT_BACKEND'],
-                    broker=app.config['CELERY_BROKER_URL'],
+    celery = Celery(app.import_name, backend=os.environ['CELERY_RESULT_BACKEND'],
+                    broker=os.environ['CELERY_BROKER_URL'],
                     include=['tasks'])
     celery.conf.update(app.config)
     TaskBase = celery.Task
@@ -17,11 +18,10 @@ def make_celery(app):
     return celery
 
 flask_app = Flask(__name__)
-config = ConfigSectionMap('CELERY')
 flask_app.config.update(
-    CELERY_BROKER_URL=config['celery_broker_url'],
-    CELERY_RESULT_BACKEND=config['celery_result_backend']
+    CELERY_BROKER_URL=os.environ['CELERY_BROKER_URL'],
+    CELERY_RESULT_BACKEND=os.environ['CELERY_RESULT_BACKEND'],
+    CELERY_REDIS_MAX_CONNECTIONS=15,
 )
-config = None
 
 celery = make_celery(flask_app)
