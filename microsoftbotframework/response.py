@@ -85,17 +85,17 @@ class Response:
 
     def get_redis_auth_token(self):
         self.redis = redis.StrictRedis.from_url(self.redis_url_token_store)
-        token_type = self.redis.get("token_type").decode('UTF-8')
-        access_token = self.redis.get("access_token").decode('UTF-8')
-        token_expires_at = self.redis.get("token_expires_at").decode('UTF-8')
+        token_type = self.redis.get("token_type")
+        access_token = self.redis.get("access_token")
+        token_expires_at = self.redis.get("token_expires_at")
 
         if token_type is None or access_token is None or token_expires_at is None or \
-                self.has_token_expired(token_expires_at):
+                self.has_token_expired(token_expires_at.decode('UTF-8')):
             return self.get_remote_auth_token()
         else:
             return {
-                'token_type': token_type,
-                'access_token': access_token
+                'token_type': token_type.decode('UTF-8'),
+                'access_token': access_token.decode('UTF-8')
             }
 
     def set_header(self):
