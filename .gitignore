@@ -50,5 +50,7 @@ crashlytics-build.properties
 # Created by .ignore support plugin (hsz.mobi)
 
 /venv/
-/__pycache__/
-/microsoftbotframework/__pycache__/
+*/__pycache__/
+/microsoftbotframework.egg-info/
+/dist/
+*.pyc

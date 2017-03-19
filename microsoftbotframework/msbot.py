@@ -1,10 +1,13 @@
 from flask import Flask, request
 from celery.local import PromiseProxy
-import os
+from .utils import get_config
+
 
 class MsBot:
-    def __init__(self):
+    def __init__(self, host=None, port=None):
         self.processes = []
+        self.host = get_config(host, 'HOST', '0.0.0.0')
+        self.port = int(get_config(port, 'PORT', 5000))
 
         self.app = Flask(__name__)
 
@@ -23,5 +26,4 @@ class MsBot:
         self.processes.append(process)
 
     def run(self):
-        port = int(os.environ.get("PORT", 5000))
-        self.app.run(host='0.0.0.0', port=port)
+        self.app.run(host=self.host, port=self.port)

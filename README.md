@@ -8,11 +8,7 @@ Install package using pip
 ```sh
 pip install microsoftbotframework
 ```
-Set the environment (PROD or DEV)
-```
-export ENVIRONMENT=PROD
-```
-Create a Microsoft Chatbot | https://dev.botframework.com/bots. Generate <Microsoft App ID> and <Microsoft App Secret> then add them to the evironment vars.
+Create a Microsoft Chatbot | https://dev.botframework.com/bots. Generate 'Microsoft App ID' and 'Microsoft App Secret'. You will need to pass this to the response object (overview below) or you can set it as a global var (recommended) as below.
 ```
 export APP_CLIENT_ID=<Microsoft App ID>
 export APP_CLIENT_SECRET=<Microsoft App Secret>
@@ -27,7 +23,7 @@ bot.add_process(echo_response)
 # Start the webserver
 bot.run()
 ```
-
+This will start a server running on localhost, port 5000. 
 ## Process Definition
 Every time a message is recieved all of the methods passed to the chatbot via the MsBot.add_process() method will be called.
 #### Base Definition
@@ -35,9 +31,9 @@ Every function is passed the message from Microsoft when it is called.
 ```python
 def BaseTask(message):
     pass
-```
+``` 
 #### Example Definition
-This will echo back all messages recieved.
+This will echo back all messages recieved. See details on the Response object below.
 ```python
 def RespondToConversation(message):
     if message["type"]=="message":
@@ -46,12 +42,22 @@ def RespondToConversation(message):
         response.reply_to_activity(message_response)
 ```
 ##### Configure Async Tasks
-Add the broker-url and result-backend uri to the environment vars
+Note: I have only successfully tested async tasks on Linux.
+
+You will have to setup a celery backend, I personally use redis but rabbitmq should work as well. I good guide to setting up reddis on Ubuntu can be found here https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-redis-on-ubuntu-16-04.
+
+Add the broker-url and result-backend uri to the environment vars. The default values are for a redis backend.
 ```
 export CELERY_BROKER_URL=redis://localhost:6379
 export CELERY_RESULT_BACKEND=redis://localhost:6379
 ```
-To use celery install and configure celery and its backend and run
+or you can use a config.ini file with the following information
+```
+[CELERY]
+celery_result_backend: redis://localhost:6379
+celery_broker_url: redis://localhost:6379
+```
+to start celery run the following command.
 ```sh
 celery -A microsoftbotframework.runcelery.celery worker --loglevel=info
 ```
@@ -61,4 +67,17 @@ This method will be executed asynchronously. Several Celery decorators are avail
 @celery.task()
 def AsyncTask(message):
     sleep(10)
+```
+## The Response Object
+The response object is created by passing it the message recieved and then calling Response.reply_to_activity(message).
+```python
+response = Response(message)
+response.reply_to_activity('This is my response.')
+```
+You don't have to pass the message to the Response object but you will have to set all of the required vars before you respond to microsoft.
+ 
+If you haven't added 'Microsoft App ID' and 'Microsoft App Secret' to the global vars you will have to pass them to the response as follows.
+```python
+response = Response(message, microsoft_app_id='Microsoft App ID', microsoft_app_secret='Microsoft App Secret')
+response.reply_to_activity('This is my response.')
 ```

@@ -1,0 +1,3 @@
+[CELERY]
+celery_result_backend: redis://localhost:6379
+celery_broker_url: redis://localhost:6379
