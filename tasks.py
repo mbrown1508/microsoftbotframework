@@ -10,7 +10,7 @@ def respond_to_conversation_update(message):
 
 
 # If you have setup a celery backend then you can uncomment the line below.
-# @celery.task()
+@celery.task()
 def echo_response(message):
     if message["type"] == "message":
         response = Response(message)

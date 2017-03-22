@@ -1,4 +1,4 @@
-from .utils import get_config
+from .config import Config
 from urllib.parse import urljoin
 import requests
 import datetime
@@ -8,20 +8,21 @@ import redis
 class Response:
     def __init__(self, message=None, auth=None, app_client_id=None, app_client_secret=None,
                  redis_url_token_store=None):
-        self.auth = get_config(auth, 'AUTH', 'True')
-        self.app_client_id = get_config(app_client_id, 'APP_CLIENT_ID', None)
-        self.app_client_secret = get_config(app_client_secret, 'APP_CLIENT_SECRET', None)
-        self.redis_url_token_store = get_config(redis_url_token_store, 'REDIS_URL_TOKEN_STORE', None)
+        config = Config()
+        self.auth = config.get_config(auth, 'AUTH')
+        self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
+        self.app_client_secret = config.get_config(app_client_secret, 'APP_CLIENT_SECRET')
+        self.redis_url_token_store = config.get_config(redis_url_token_store, 'URI', root='redis')
 
         if self.app_client_id is None:
             print('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')
-            self.auth = 'False'
+            self.auth = False
         elif self.app_client_secret is None:
             print('The \'APP_CLIENT_SECRET\' has not been set. Disabling authentication.')
-            self.auth = 'False'
+            self.auth = False
 
         self.cache_token = True
-        if self.auth == 'True':
+        if self.auth:
             if self.redis_url_token_store is None:
                 print('The \'REDIS_URI_TOKEN_STORE\' has not been set. Disabling token caching.')
                 self.cache_token = False
@@ -30,6 +31,7 @@ class Response:
         self.headers = None
         self.token = None
         self.redis = None
+        self.redis_config = config.get_section_config('redis')
 
     def __getitem__(self, key):
         try:
@@ -56,7 +58,7 @@ class Response:
                 "client_id": self.app_client_id,
                 "client_secret": self.app_client_secret,
                 "scope": "https://api.botframework.com/.default"
-               }
+                }
         response = requests.post(response_auth_url, data)
         response_data = response.json()
 
@@ -85,6 +87,9 @@ class Response:
 
     def get_redis_auth_token(self):
         self.redis = redis.StrictRedis.from_url(self.redis_url_token_store)
+        for name, value in self.redis_config.items():
+            if name != 'uri':
+                self.redis.config_set(name, value)
         token_type = self.redis.get("token_type")
         access_token = self.redis.get("access_token")
         token_expires_at = self.redis.get("token_expires_at")
@@ -109,13 +114,14 @@ class Response:
     def reply_to_activity(self, message, reply_to_id=None, from_info=None,
                           recipient=None, message_type=None, conversation=None):
 
-        if self.auth == 'True':
+        if self.auth:
             self.set_header()
 
         conversation_id = self['conversation']["id"] if conversation is None else conversation['id']
         reply_to_id = self['id'] if reply_to_id is None else reply_to_id
 
-        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities".format(conversation_id, reply_to_id))
+        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities".format(conversation_id,
+                                                                                            reply_to_id))
 
         response_json = {
             "from": self["recipient"] if from_info is None else from_info,
@@ -124,7 +130,7 @@ class Response:
             "conversation": self['conversation'] if conversation is None else conversation,
             "recipient": self["from"] if recipient is None else recipient,
             "text": message,
-            "replyToId": reply_to_id
+            "replyToId": reply_to_id,
         }
 
         requests.post(response_url, json=response_json, headers=self.headers)

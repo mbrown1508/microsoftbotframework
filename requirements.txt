@@ -2,3 +2,4 @@ Flask==0.12
 celery==4.0.2
 requests==2.13
 redis==2.10.5
+PyYAML==3.12

@@ -1,12 +1,11 @@
 from flask import Flask
 from celery import Celery
-from.utils import get_celery_config
+from .config import Config
 
 
-def make_celery(app, celery_config):
-
-    celery = Celery(app.import_name, backend=celery_config['celery_result_backend'],
-                    broker=celery_config['celery_broker_url'],
+def make_celery(app, config):
+    celery = Celery(app.import_name,
+                    broker=config['celery_broker_url'],
                     include=['tasks'])
     celery.conf.update(app.config)
     task_base = celery.Task
@@ -21,13 +20,11 @@ def make_celery(app, celery_config):
     return celery
 
 
-celery_config = get_celery_config()
+config = Config().get_section_config('celery')
 
 flask_app = Flask(__name__)
-flask_app.config.update(
-    CELERY_BROKER_URL=celery_config['celery_broker_url'],
-    CELERY_RESULT_BACKEND=celery_config['celery_result_backend'],
-    CELERY_REDIS_MAX_CONNECTIONS=15,
-)
 
-celery = make_celery(flask_app, celery_config)
+for key, value in config.items():
+    flask_app.config[key.upper()] = value
+
+celery = make_celery(flask_app, config)

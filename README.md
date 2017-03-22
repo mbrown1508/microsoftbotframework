@@ -13,6 +13,12 @@ Create a Microsoft Chatbot | https://dev.botframework.com/bots. Generate 'Micros
 export APP_CLIENT_ID=<Microsoft App ID>
 export APP_CLIENT_SECRET=<Microsoft App Secret>
 ```
+or place them in the config.yaml file
+```
+other:
+    app_client_id: <Microsoft App ID>
+    app_client_secret: <Microsoft App Secret>
+```
 
 ## Basic usage
 ```Python
@@ -48,14 +54,14 @@ You will have to setup a celery backend, I personally use redis but rabbitmq sho
 
 Add the broker-url and result-backend uri to the environment vars. The default values are for a redis backend.
 ```
-export CELERY_BROKER_URL=redis://localhost:6379
-export CELERY_RESULT_BACKEND=redis://localhost:6379
+export CELERY_CELERY_BROKER_URL=redis://localhost:6379
+export CELERY_CELERY_RESULT_BACKEND=redis://localhost:6379
 ```
-or you can use a config.ini file with the following information
+or you can use a config.yaml file with the following information
 ```
-[CELERY]
-celery_result_backend: redis://localhost:6379
-celery_broker_url: redis://localhost:6379
+celery:
+    celery_result_backend: redis://localhost:6379
+    celery_broker_url: redis://localhost:6379
 ```
 to start celery run the following command.
 ```sh
@@ -80,4 +86,14 @@ If you haven't added 'Microsoft App ID' and 'Microsoft App Secret' to the global
 ```python
 response = Response(message, microsoft_app_id='Microsoft App ID', microsoft_app_secret='Microsoft App Secret')
 response.reply_to_activity('This is my response.')
+```
+## Configuration
+Additional configuration can be passed to celery and redis (flask comming soon) by setting them in the config.yaml as follows.
+```
+celery:
+    celery_result_backend: redis://localhost:6379
+    celery_broker_url: redis://localhost:6379
+    broker_pool_limit: None
+redis:
+    
 ```
