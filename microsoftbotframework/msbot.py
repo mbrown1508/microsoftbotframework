@@ -4,11 +4,12 @@ from .config import Config
 
 
 class MsBot:
-    def __init__(self, host=None, port=None):
+    def __init__(self, host=None, port=None, debug=None):
         self.processes = []
         config = Config()
         self.host = config.get_config(host, 'HOST', root='flask')
         self.port = config.get_config(port, 'PORT', root='flask')
+        self.debug = config.get_config(debug, 'DEBUG', root='flask')
 
         self.app = Flask(__name__)
 
@@ -18,8 +19,10 @@ class MsBot:
             json_message = request.get_json()
             for process in self.processes:
                 if isinstance(process, PromiseProxy):
+                    self.app.logger.info('Processing task {} asynchronously.'.format(type(process).__name__))
                     process.delay(json_message)
                 elif callable(process):
+                    self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
                     process(json_message)
             return "Success"
 
@@ -27,4 +30,4 @@ class MsBot:
         self.processes.append(process)
 
     def run(self):
-        self.app.run(host=self.host, port=self.port)
+        self.app.run(host=self.host, port=self.port, debug=self.debug)

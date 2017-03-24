@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 import os
 import yaml
+import logging
 
 
 class Config:
@@ -32,21 +33,27 @@ class Config:
                             }, 'flask': {
                                 'host': '0.0.0.0',
                                 'port': '5000',
+                                'debug': False,
                             },
                                 'redis': {
                                     'uri': None,
                             }}
+
+        logger = logging.getLogger(__name__)
 
         for root, values in yaml_config.items():
             if root not in default_config:
                 default_config[root] = {}
             for sub in values.keys():
                 default_config[root][sub] = yaml_config[root][sub]
+                logger.info('{}:{} loaded from yaml config'.format(root, sub))
 
         return default_config
 
     @staticmethod
     def check_for_global_vars(config):
+        logger = logging.getLogger(__name__)
+
         for root, values in config.items():
             for sub in values.keys():
                 if root == 'other':
@@ -55,6 +62,7 @@ class Config:
                     env_key = '{}_{}'.format(root, sub).upper()
                 if env_key in os.environ:
                     config[root][sub] = os.environ[env_key]
+                    logger.info('{}:{} loaded from global vars'.format(root, sub))
         return config
 
     def get_config(self, argument, config_name, root=None):

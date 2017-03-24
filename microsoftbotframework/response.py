@@ -3,6 +3,7 @@ from urllib.parse import urljoin
 import requests
 import datetime
 import redis
+import logging
 
 
 class Response:
@@ -14,17 +15,19 @@ class Response:
         self.app_client_secret = config.get_config(app_client_secret, 'APP_CLIENT_SECRET')
         self.redis_url_token_store = config.get_config(redis_url_token_store, 'URI', root='redis')
 
+        logger = logging.getLogger(__name__)
+
         if self.app_client_id is None:
-            print('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')
+            logger.info('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')
             self.auth = False
         elif self.app_client_secret is None:
-            print('The \'APP_CLIENT_SECRET\' has not been set. Disabling authentication.')
+            logger.info('The \'APP_CLIENT_SECRET\' has not been set. Disabling authentication.')
             self.auth = False
 
         self.cache_token = True
         if self.auth:
             if self.redis_url_token_store is None:
-                print('The \'REDIS_URI_TOKEN_STORE\' has not been set. Disabling token caching.')
+                logger.info('The \'REDIS_URI_TOKEN_STORE\' has not been set. Disabling token caching.')
                 self.cache_token = False
 
         self.data = {} if message is None else message
@@ -81,6 +84,9 @@ class Response:
         self.redis.set("access_token", access_token)
         self.redis.set("token_expires_at", expires_at_string)
 
+        logger = logging.getLogger(__name__)
+        logger.info('Auth token stored')
+
     @staticmethod
     def has_token_expired(expires_at):
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
@@ -94,10 +100,14 @@ class Response:
         access_token = self.redis.get("access_token")
         token_expires_at = self.redis.get("token_expires_at")
 
+        logger = logging.getLogger(__name__)
+
         if token_type is None or access_token is None or token_expires_at is None or \
                 self.has_token_expired(token_expires_at.decode('UTF-8')):
+            logger.info('Getting remote auth token')
             return self.get_remote_auth_token()
         else:
+            logger.info('Got stored auth token')
             return {
                 'token_type': token_type.decode('UTF-8'),
                 'access_token': access_token.decode('UTF-8')
@@ -133,4 +143,13 @@ class Response:
             "replyToId": reply_to_id,
         }
 
-        requests.post(response_url, json=response_json, headers=self.headers)
+        post_response = requests.post(response_url, json=response_json, headers=self.headers)
+
+        logger = logging.getLogger(__name__)
+
+        if post_response.status_code == 200:
+            logger.info('Successfully posted to Microsoft Bot Connector')
+        else:
+            logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Info {}'
+                         .format(post_response.status_code, post_response.text))
+
