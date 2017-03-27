@@ -1,7 +1,6 @@
 from .config import Config
 from urllib.parse import urljoin
 import requests
-from requests.utils import quote
 import datetime
 import redis
 import logging
@@ -132,7 +131,7 @@ class Response:
         reply_to_id = self['id'] if reply_to_id is None else reply_to_id
 
         response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities/{}".format(
-                                                                            quote(conversation_id, safe=''),
+                                                                            conversation_id,
                                                                             reply_to_id))
 
         response_json = {
