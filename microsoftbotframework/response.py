@@ -144,7 +144,6 @@ class Response:
             "text": message,
             "replyToId": reply_to_id,
             "serviceUrl": self['serviceUrl'],
-            "textFormat": self['textFormat'],
         }
 
         # Microsoft Teams specific groups (i think)
@@ -152,6 +151,8 @@ class Response:
             response_json['channelId'] = self.data['channelId']
         if 'channelData' in self.data:
             response_json['channelData'] = self.data['channelData']
+        if 'textFormat' in self.data:
+            response_json['textFormat'] = self.data['textFormat']
 
         logger = logging.getLogger(__name__)
         logger.info('response_url: {}'.format(response_url))
