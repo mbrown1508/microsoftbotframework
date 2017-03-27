@@ -150,6 +150,7 @@ class Response:
             response_json['channelData'] = self.data['channelData']
 
         logger = logging.getLogger(__name__)
+        logger.info('response_url: {}'.format(response_url))
         logger.info('response_headers: {}'.format(self.headers))
         logger.info('response_json: {}'.format(response_json))
 
