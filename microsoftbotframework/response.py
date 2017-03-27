@@ -143,6 +143,12 @@ class Response:
             "replyToId": reply_to_id,
         }
 
+        # Microsoft Teams specific groups (i think)
+        if 'channelId' in self.data:
+            response_json['channelId'] = self.data['channelId']
+        if 'channelData' in self.data:
+            response_json['channelData'] = self.data['channelData']
+
         logger = logging.getLogger(__name__)
         logger.info('response_headers: {}'.format(self.headers))
         logger.info('response_json: {}'.format(response_json))
