@@ -5,7 +5,7 @@ from .config import Config
 
 def make_celery(app, config):
     celery = Celery(app.import_name,
-                    broker=config['celery_broker_url'],
+                    broker=config['broker_url'],
                     include=['tasks'])
     celery.conf.update(app.config)
     task_base = celery.Task
