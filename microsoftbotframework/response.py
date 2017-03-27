@@ -130,8 +130,8 @@ class Response:
         conversation_id = self['conversation']["id"] if conversation is None else conversation['id']
         reply_to_id = self['id'] if reply_to_id is None else reply_to_id
 
-        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities".format(conversation_id,
-                                                                                            reply_to_id))
+        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities/{}".format(conversation_id,
+                                                                                               reply_to_id))
 
         response_json = {
             "from": self["recipient"] if from_info is None else from_info,
