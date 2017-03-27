@@ -147,9 +147,9 @@ class Response:
 
         logger = logging.getLogger(__name__)
 
-        if post_response.status_code == 200:
-            logger.info('Successfully posted to Microsoft Bot Connector')
+        if post_response.status_code == 200 or post_response.status_code == 201:
+            logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text))
         else:
-            logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Info {}'
+            logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Text {}'
                          .format(post_response.status_code, post_response.text))
 
