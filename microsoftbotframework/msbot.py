@@ -16,7 +16,12 @@ class MsBot:
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
             # TODO: Confirm that it is from microsoft
+
             json_message = request.get_json()
+
+            self.app.logger.info('message.headers: {}'.format(request.headers))
+            self.app.logger.info('message.body: {}'.format(json_message))
+
             for process in self.processes:
                 if isinstance(process, PromiseProxy):
                     self.app.logger.info('Processing task {} asynchronously.'.format(type(process).__name__))
