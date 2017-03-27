@@ -54,14 +54,14 @@ You will have to setup a celery backend, I personally use redis but rabbitmq sho
 
 Add the broker-url and result-backend uri to the environment vars. The default values are for a redis backend.
 ```
-export CELERY_CELERY_BROKER_URL=redis://localhost:6379
-export CELERY_CELERY_RESULT_BACKEND=redis://localhost:6379
+export CELERY_BROKER_URL=redis://localhost:6379
+export CELERY_RESULT_BACKEND=redis://localhost:6379
 ```
 or you can use a config.yaml file with the following information
 ```
 celery:
-    celery_result_backend: redis://localhost:6379
-    celery_broker_url: redis://localhost:6379
+    result_backend: redis://localhost:6379
+    broker_url: redis://localhost:6379
 ```
 to start celery run the following command.
 ```sh
@@ -91,8 +91,8 @@ response.reply_to_activity('This is my response.')
 Additional configuration can be passed to celery and redis (flask comming soon) by setting them in the config.yaml as follows.
 ```
 celery:
-    celery_result_backend: redis://localhost:6379
-    celery_broker_url: redis://localhost:6379
+    result_backend: redis://localhost:6379
+    broker_url: redis://localhost:6379
     broker_pool_limit: None
 redis:
     

@@ -29,7 +29,7 @@ class Config:
                                 'app_client_id': None,
                                 'app_client_secret': None,
                             }, 'celery': {
-                                'celery_broker_url': None,
+                                'broker_url': None,
                             }, 'flask': {
                                 'host': '0.0.0.0',
                                 'port': '5000',
