@@ -143,9 +143,11 @@ class Response:
             "replyToId": reply_to_id,
         }
 
-        post_response = requests.post(response_url, json=response_json, headers=self.headers)
-
         logger = logging.getLogger(__name__)
+        logger.info('response_headers: {}'.format(self.headers))
+        logger.info('response_json: {}'.format(response_json))
+
+        post_response = requests.post(response_url, json=response_json, headers=self.headers)
 
         if post_response.status_code == 200 or post_response.status_code == 201:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text))
