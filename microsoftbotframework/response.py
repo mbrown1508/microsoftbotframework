@@ -141,6 +141,8 @@ class Response:
             "recipient": self["from"] if recipient is None else recipient,
             "text": message,
             "replyToId": reply_to_id,
+            "serviceUrl": self['serviceUrl'],
+            "textFormat": self['textFormat'],
         }
 
         # Microsoft Teams specific groups (i think)
