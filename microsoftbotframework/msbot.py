@@ -39,7 +39,7 @@ class MsBot:
         self.app.logger.info(request.headers)
         self.app.logger.info(request.get_json())
 
-        authorization_header = request.headers['authorisation']
+        authorization_header = request.headers['Authorization']
         token = authorization_header[7:]
         authorization_scheme = authorization_header[:6]
 
