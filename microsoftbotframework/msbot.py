@@ -30,7 +30,7 @@ class MsBot:
                     json_headers[key] = value
 
                 self.app.logger.info('message.headers: {}'.format(json.dumps(json_headers)))
-                self.app.logger.info('message.body: {}'.format(json_message))
+                self.app.logger.info('message.body: {}'.format(json.dumps(json_message)))
 
                 for process in self.processes:
                     if isinstance(process, PromiseProxy):
@@ -93,5 +93,5 @@ class MsBot:
             self.app.logger.warning('The token issuer claim had the incorrect value of {}'.format(decoded_jwt['iss']))
             return False
 
-        self.app.logger.info('Token was validated - {}'.format(decoded_jwt))
+        self.app.logger.info('Token was validated - {}'.format(json.dumps(decoded_jwt)))
         return decoded_jwt

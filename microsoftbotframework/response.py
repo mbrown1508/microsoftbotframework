@@ -4,6 +4,7 @@ import requests
 import datetime
 import redis
 import logging
+import json
 
 
 class Response:
@@ -155,8 +156,8 @@ class Response:
 
         logger = logging.getLogger(__name__)
         logger.info('response_url: {}'.format(response_url))
-        logger.info('response_headers: {}'.format(self.headers))
-        logger.info('response_json: {}'.format(response_json))
+        logger.info('response_headers: {}'.format(json.dumps(self.headers)))
+        logger.info('response_json: {}'.format(json.dumps(response_json)))
 
         post_response = requests.post(response_url, json=response_json, headers=self.headers)
 
