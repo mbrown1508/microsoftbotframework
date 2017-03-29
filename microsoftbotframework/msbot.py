@@ -35,20 +35,22 @@ class MsBot:
                     process(json_message)
             return "Success"
 
-        def verify_token(self, request, logger, app_client_id=None):
-            print(request.headers)
-            print(request.get_json())
+        def verify_token(self, request, app_client_id=None):
+            self.app.logger.info(request.headers)
+            self.app.logger.info(request.get_json())
 
             authorization_header = request.headers['authorisation']
             token = authorization_header[7:]
             authorization_scheme = authorization_header[:6]
+
+            self.app.logger.info(jwt.decode(token, verify=False))
 
             config = Config()
             audience = config.get_config(app_client_id, 'APP_CLIENT_ID')
 
             # 1. The token was sent in the HTTP Authorization header with 'Bearer' scheme
             if authorization_scheme == "Bearer":
-                logger.warning('The token was not sent in the http authorisation header with the Bearer scheme.')
+                self.app.logger.warning('The token was not sent in the http authorisation header with the Bearer scheme.')
                 return False
 
             # 2. The token is valid JSON that conforms to the JWT standard (see references)
