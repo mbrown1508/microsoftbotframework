@@ -35,6 +35,12 @@ class MsBot:
                     process(json_message)
             return "Success"
 
+    def add_process(self, process):
+        self.processes.append(process)
+
+    def run(self):
+        self.app.run(host=self.host, port=self.port, debug=self.debug)
+
     def verify_token(self, request, app_client_id=None):
         self.app.logger.info(request.headers)
         self.app.logger.info(request.get_json())
@@ -43,7 +49,8 @@ class MsBot:
         token = authorization_header[7:]
         authorization_scheme = authorization_header[:6]
 
-        self.app.logger.info(jwt.decode(token, verify=False))
+        token_headers = jwt.get_unverified_header(token)
+        self.app.logger.info(token_headers)
 
         config = Config()
         audience = config.get_config(app_client_id, 'APP_CLIENT_ID')
@@ -81,10 +88,3 @@ class MsBot:
                 print(e)
 
                 # 3. The token contains an issuer claim with value of https://api.botframework.com
-
-    def add_process(self, process):
-        self.processes.append(process)
-
-    def run(self):
-        self.app.run(host=self.host, port=self.port, debug=self.debug)
-
