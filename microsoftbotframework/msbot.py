@@ -25,7 +25,11 @@ class MsBot:
             if valid_token:
                 json_message = request.get_json()
 
-                self.app.logger.info('message.headers: {}'.format(json.dumps({a: request.headers['a'] for a in request.headers})))
+                json_headers = {}
+                for key, value in request.headers.iteritems():
+                    json_headers[key] = value
+
+                self.app.logger.info('message.headers: {}'.format(json.dumps(json_headers)))
                 self.app.logger.info('message.body: {}'.format(json_message))
 
                 for process in self.processes:
@@ -76,7 +80,6 @@ class MsBot:
 
                 try:
                     decoded_jwt = jwt.decode(token, public_key, algorithms=['RS256'], audience=self.app_client_id)
-                    self.app.logger.info(decoded_jwt)
                 except jwt.exceptions.InvalidTokenError as e:
                     self.app.logger.warning('{}'.format(e))
                     return False
@@ -90,5 +93,5 @@ class MsBot:
             self.app.logger.warning('The token issuer claim had the incorrect value of {}'.format(decoded_jwt['iss']))
             return False
 
-        self.app.logger.info('Token was validated.')
+        self.app.logger.info('Token was validated - {}'.format(decoded_jwt))
         return decoded_jwt
