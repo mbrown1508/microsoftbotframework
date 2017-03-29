@@ -26,7 +26,7 @@ class MsBot:
                 json_message = request.get_json()
 
                 json_headers = {}
-                for key, value in request.headers.iteritems():
+                for key, value in request.headers:
                     json_headers[key] = value
 
                 self.app.logger.info('message.headers: {}'.format(json.dumps(json_headers)))
