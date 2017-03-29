@@ -20,21 +20,22 @@ class MsBot:
 
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
-            self.verify_token(request)
+            valid_token = self.verify_token(request)
 
-            json_message = request.get_json()
+            if valid_token:
+                json_message = request.get_json()
 
-            self.app.logger.info('message.headers: {}'.format(request.headers))
-            self.app.logger.info('message.body: {}'.format(json_message))
+                self.app.logger.info('message.headers: {}'.format(request.headers))
+                self.app.logger.info('message.body: {}'.format(json_message))
 
-            for process in self.processes:
-                if isinstance(process, PromiseProxy):
-                    self.app.logger.info('Processing task {} asynchronously.'.format(type(process).__name__))
-                    process.delay(json_message)
-                elif callable(process):
-                    self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
-                    process(json_message)
-            return "Success"
+                for process in self.processes:
+                    if isinstance(process, PromiseProxy):
+                        self.app.logger.info('Processing task {} asynchronously.'.format(type(process).__name__))
+                        process.delay(json_message)
+                    elif callable(process):
+                        self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
+                        process(json_message)
+                return "Success"
 
     def add_process(self, process):
         self.processes.append(process)
@@ -89,4 +90,5 @@ class MsBot:
             self.app.logger.warning('The token issuer claim had the incorrect value of {}'.format(decoded_jwt['iss']))
             return False
 
+        self.app.logger.info('Token was validated.')
         return decoded_jwt
