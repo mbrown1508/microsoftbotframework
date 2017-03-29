@@ -25,7 +25,7 @@ class MsBot:
             if valid_token:
                 json_message = request.get_json()
 
-                self.app.logger.info('message.headers: {}'.format(json.dumps(request.headers.__dict__)))
+                self.app.logger.info('message.headers: {}'.format(json.dumps(request.headers)))
                 self.app.logger.info('message.body: {}'.format(json_message))
 
                 for process in self.processes:
