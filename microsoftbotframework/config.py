@@ -26,6 +26,7 @@ class Config:
     def replace_missing_values_with_default(yaml_config):
         default_config =    {'other': {
                                 'auth': True,
+                                'verify_jwt_signature': True,
                                 'app_client_id': None,
                                 'app_client_secret': None,
                             }, 'celery': {

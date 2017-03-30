@@ -5,22 +5,37 @@ import requests
 import json
 from jwt.algorithms import RSAAlgorithm
 import jwt
+import redis
+import datetime
 
 
 class MsBot:
-    def __init__(self, host=None, port=None, debug=None, app_client_id=None):
+    def __init__(self, host=None, port=None, debug=None, app_client_id=None, redis_uri=None, verify_jwt_signature=None):
+        self.app = Flask(__name__)
+
         self.processes = []
         config = Config()
         self.host = config.get_config(host, 'HOST', root='flask')
         self.port = config.get_config(port, 'PORT', root='flask')
         self.debug = config.get_config(debug, 'DEBUG', root='flask')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
+        self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
+        self.verify_jwt_signature = config.get_config(verify_jwt_signature, 'VERIFY_JWT_SIGNATURE')
+        self.redis = None
 
-        self.app = Flask(__name__)
+        self.cache_certs = True
+        if self.redis_uri is None:
+            self.app.logger.info('The \'REDIS_URI\' has not been set. Disabling certificate caching.')
+            self.cache_certs = False
+
+        self.redis_config = config.get_section_config('redis')
 
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
-            valid_token = self.verify_token(request)
+            if self.verify_jwt_signature:
+                valid_token = self.verify_token(request)
+            else:
+                valid_token = True
 
             if valid_token:
                 json_message = request.get_json()
@@ -54,12 +69,10 @@ class MsBot:
         token_headers = jwt.get_unverified_header(token)
 
         # Get valid signing keys
-        openid_metadata_url = "https://login.botframework.com/v1/.well-known/openidconfiguration"
-        openid_metadata = requests.get(openid_metadata_url)
-
-        valid_signing_keys_url = openid_metadata.json()["jwks_uri"]
-        valid_signing_keys = requests.get(valid_signing_keys_url)
-        valid_signing_keys = valid_signing_keys.json()
+        if self.cache_certs:
+            valid_certificates = self.get_redis_certificates()
+        else:
+            valid_certificates = self.get_remote_certificates()
 
         # 1. The token was sent in the HTTP Authorization header with 'Bearer' scheme
         if authorization_scheme != "Bearer":
@@ -71,7 +84,7 @@ class MsBot:
         # 5. The token has not yet expired. Industry-standard clock-skew is 5 minutes.
         # 6. The token has a valid cryptographic signature with a key listed in the OpenId keys document retrieved in step 1, above.
         decoded_jwt = None
-        for dict_key in valid_signing_keys['keys']:
+        for dict_key in valid_certificates['keys']:
             if dict_key['kid'] == token_headers['kid']:
                 key = json.dumps(dict_key)
 
@@ -95,3 +108,46 @@ class MsBot:
 
         self.app.logger.info('Token was validated - {}'.format(json.dumps(decoded_jwt)))
         return decoded_jwt
+
+    def get_remote_certificates(self):
+        openid_metadata_url = "https://login.botframework.com/v1/.well-known/openidconfiguration"
+        openid_metadata = requests.get(openid_metadata_url)
+
+        valid_signing_keys_url = openid_metadata.json()["jwks_uri"]
+        valid_certificates = requests.get(valid_signing_keys_url)
+        valid_certificates = valid_certificates.json()
+
+        if self.cache_certs:
+            self.store_certificates(valid_certificates)
+
+        return valid_certificates
+
+    def store_certificates(self, valid_certificates):
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=5)
+        expires_at_string = expires_at.strftime('%Y-%m-%dT%H:%M:%S')
+
+        self.redis.set("valid_certificates", json.dumps(valid_certificates))
+        self.redis.set("certificates_expire_at", expires_at_string)
+
+        self.app.logger.info('Certificates stored')
+
+    @staticmethod
+    def has_certificate_expired(expires_at):
+        return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
+
+    def get_redis_certificates(self):
+        self.redis = redis.StrictRedis.from_url(self.redis_uri)
+        for name, value in self.redis_config.items():
+            if name != 'uri':
+                self.redis.config_set(name, value)
+
+        valid_certificates = self.redis.get("valid_certificates")
+        certificates_expire_at = self.redis.get("certificates_expire_at")
+
+        if valid_certificates is None or certificates_expire_at is None or \
+                self.has_certificate_expired(certificates_expire_at.decode('UTF-8')):
+            self.app.logger.info('Getting remote certificates')
+            return self.get_remote_certificates()
+        else:
+            self.app.logger.info('Got stored certificates')
+            return json.loads(valid_certificates.decode('UTF-8'))

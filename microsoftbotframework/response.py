@@ -9,12 +9,12 @@ import json
 
 class Response:
     def __init__(self, message=None, auth=None, app_client_id=None, app_client_secret=None,
-                 redis_url_token_store=None):
+                 redis_uri=None):
         config = Config()
         self.auth = config.get_config(auth, 'AUTH')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(app_client_secret, 'APP_CLIENT_SECRET')
-        self.redis_url_token_store = config.get_config(redis_url_token_store, 'URI', root='redis')
+        self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
 
         logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class Response:
 
         self.cache_token = True
         if self.auth:
-            if self.redis_url_token_store is None:
+            if self.redis_uri is None:
                 logger.info('The \'REDIS_URI_TOKEN_STORE\' has not been set. Disabling token caching.')
                 self.cache_token = False
 
@@ -93,7 +93,7 @@ class Response:
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
     def get_redis_auth_token(self):
-        self.redis = redis.StrictRedis.from_url(self.redis_url_token_store)
+        self.redis = redis.StrictRedis.from_url(self.redis_uri)
         for name, value in self.redis_config.items():
             if name != 'uri':
                 self.redis.config_set(name, value)
