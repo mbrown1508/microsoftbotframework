@@ -62,7 +62,7 @@ class MsBot:
     def run(self):
         self.app.run(host=self.host, port=self.port, debug=self.debug)
 
-    def verify_token(self, request):
+    def verify_token(self, request, forced_refresh=False):
         authorization_header = request.headers['Authorization']
         token = authorization_header[7:]
         authorization_scheme = authorization_header[:6]
@@ -98,6 +98,12 @@ class MsBot:
                     return False
 
         if decoded_jwt is None:
+            if self.cache_certs and not forced_refresh:
+                # Force cache refresh
+                self.app.logger.warning('Forcing cache refresh as no valid certificate was found.')
+                self.get_remote_certificates()
+                return self.verify_token(request, forced_refresh=True)
+
             self.app.logger.warning('No valid certificate was found to verify JWT')
             return False
 
