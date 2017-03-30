@@ -4,16 +4,17 @@ import requests
 import datetime
 import redis
 import logging
+import json
 
 
 class Response:
     def __init__(self, message=None, auth=None, app_client_id=None, app_client_secret=None,
-                 redis_url_token_store=None):
+                 redis_uri=None):
         config = Config()
         self.auth = config.get_config(auth, 'AUTH')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(app_client_secret, 'APP_CLIENT_SECRET')
-        self.redis_url_token_store = config.get_config(redis_url_token_store, 'URI', root='redis')
+        self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
 
         logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class Response:
 
         self.cache_token = True
         if self.auth:
-            if self.redis_url_token_store is None:
+            if self.redis_uri is None:
                 logger.info('The \'REDIS_URI_TOKEN_STORE\' has not been set. Disabling token caching.')
                 self.cache_token = False
 
@@ -92,7 +93,7 @@ class Response:
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
     def get_redis_auth_token(self):
-        self.redis = redis.StrictRedis.from_url(self.redis_url_token_store)
+        self.redis = redis.StrictRedis.from_url(self.redis_uri)
         for name, value in self.redis_config.items():
             if name != 'uri':
                 self.redis.config_set(name, value)
@@ -130,8 +131,9 @@ class Response:
         conversation_id = self['conversation']["id"] if conversation is None else conversation['id']
         reply_to_id = self['id'] if reply_to_id is None else reply_to_id
 
-        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities".format(conversation_id,
-                                                                                            reply_to_id))
+        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities/{}".format(
+                                                                            conversation_id,
+                                                                            reply_to_id))
 
         response_json = {
             "from": self["recipient"] if from_info is None else from_info,
@@ -141,11 +143,23 @@ class Response:
             "recipient": self["from"] if recipient is None else recipient,
             "text": message,
             "replyToId": reply_to_id,
+            "serviceUrl": self['serviceUrl'],
         }
 
-        post_response = requests.post(response_url, json=response_json, headers=self.headers)
+        # Microsoft Teams specific groups (i think)
+        if 'channelId' in self.data:
+            response_json['channelId'] = self.data['channelId']
+        if 'channelData' in self.data:
+            response_json['channelData'] = self.data['channelData']
+        if 'textFormat' in self.data:
+            response_json['textFormat'] = self.data['textFormat']
 
         logger = logging.getLogger(__name__)
+        logger.info('response_url: {}'.format(response_url))
+        logger.info('response_headers: {}'.format(json.dumps(self.headers)))
+        logger.info('response_json: {}'.format(json.dumps(response_json)))
+
+        post_response = requests.post(response_url, json=response_json, headers=self.headers)
 
         if post_response.status_code == 200 or post_response.status_code == 201:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text))
