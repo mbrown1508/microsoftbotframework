@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='microsoftbotframework',
-      version='0.1.9',
+      version='0.1.10',
       description='A wrapper for the microsoft bot framework API',
       classifiers=[
             'Development Status :: 3 - Alpha',
@@ -22,8 +22,10 @@ setup(name='microsoftbotframework',
             "requests",
             "redis",
             "pyyaml",
-            "PyJwt",
             "cryptography",
+      ],
+      dependency_links=[
+            'https://github.com/jpadilla/pyjwt/archive/master.zip#egg=PyJWT',
       ],
       include_package_data=True,
       zip_safe=False,
