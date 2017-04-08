@@ -1,5 +1,4 @@
 from .config import Config
-from urllib.parse import urljoin
 import requests
 import datetime
 import redis
@@ -131,7 +130,7 @@ class Response:
         conversation_id = self['conversation']["id"] if conversation is None else conversation['id']
         reply_to_id = self['id'] if reply_to_id is None else reply_to_id
 
-        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities/{}".format(
+        response_url = self.urljoin(self["serviceUrl"], "/v3/conversations/{}/activities/{}".format(
                                                                             conversation_id,
                                                                             reply_to_id))
 
@@ -167,3 +166,16 @@ class Response:
             logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Text {}'
                          .format(post_response.status_code, post_response.text))
 
+    @staticmethod
+    def urljoin(url1, url2):
+        url1_has_end_slash = url1[-1] == '/'
+        url2_has_start_slash = url2[0] == '/'
+
+        print(url1_has_end_slash, url2_has_start_slash)
+
+        if url1_has_end_slash != url2_has_start_slash:
+            return url1 + url2
+        elif url1_has_end_slash and url1_has_end_slash:
+            return url1 + url2[1:]
+        else:
+            return url1 + '/' + url2
