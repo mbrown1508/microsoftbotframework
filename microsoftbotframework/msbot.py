@@ -33,7 +33,7 @@ class MsBot:
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
             if self.verify_jwt_signature:
-                valid_token = self.verify_token(request)
+                valid_token = self._verify_token(request)
             else:
                 valid_token = True
 
@@ -62,7 +62,7 @@ class MsBot:
     def run(self):
         self.app.run(host=self.host, port=self.port, debug=self.debug)
 
-    def verify_token(self, request, forced_refresh=False):
+    def _verify_token(self, request, forced_refresh=False):
         authorization_header = request.headers['Authorization']
         token = authorization_header[7:]
         authorization_scheme = authorization_header[:6]
@@ -70,9 +70,9 @@ class MsBot:
 
         # Get valid signing keys
         if self.cache_certs:
-            valid_certificates = self.get_redis_certificates()
+            valid_certificates = self._get_redis_certificates()
         else:
-            valid_certificates = self.get_remote_certificates()
+            valid_certificates = self._get_remote_certificates()
 
         # 1. The token was sent in the HTTP Authorization header with 'Bearer' scheme
         if authorization_scheme != "Bearer":
@@ -101,8 +101,8 @@ class MsBot:
             if self.cache_certs and not forced_refresh:
                 # Force cache refresh
                 self.app.logger.warning('Forcing cache refresh as no valid certificate was found.')
-                self.get_remote_certificates()
-                return self.verify_token(request, forced_refresh=True)
+                self._get_remote_certificates()
+                return self._verify_token(request, forced_refresh=True)
 
             self.app.logger.warning('No valid certificate was found to verify JWT')
             return False
@@ -115,7 +115,7 @@ class MsBot:
         self.app.logger.info('Token was validated - {}'.format(json.dumps(decoded_jwt)))
         return decoded_jwt
 
-    def get_remote_certificates(self):
+    def _get_remote_certificates(self):
         openid_metadata_url = "https://login.botframework.com/v1/.well-known/openidconfiguration"
         openid_metadata = requests.get(openid_metadata_url)
 
@@ -124,11 +124,11 @@ class MsBot:
         valid_certificates = valid_certificates.json()
 
         if self.cache_certs:
-            self.store_certificates(valid_certificates)
+            self._store_certificates(valid_certificates)
 
         return valid_certificates
 
-    def store_certificates(self, valid_certificates):
+    def _store_certificates(self, valid_certificates):
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=5)
         expires_at_string = expires_at.strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -138,10 +138,10 @@ class MsBot:
         self.app.logger.info('Certificates stored')
 
     @staticmethod
-    def has_certificate_expired(expires_at):
+    def _has_certificate_expired(expires_at):
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
-    def get_redis_certificates(self):
+    def _get_redis_certificates(self):
         self.redis = redis.StrictRedis.from_url(self.redis_uri)
         for name, value in self.redis_config.items():
             if name != 'uri':
@@ -151,9 +151,9 @@ class MsBot:
         certificates_expire_at = self.redis.get("certificates_expire_at")
 
         if valid_certificates is None or certificates_expire_at is None or \
-                self.has_certificate_expired(certificates_expire_at.decode('UTF-8')):
+                self._has_certificate_expired(certificates_expire_at.decode('UTF-8')):
             self.app.logger.info('Getting remote certificates')
-            return self.get_remote_certificates()
+            return self._get_remote_certificates()
         else:
             self.app.logger.info('Got stored certificates')
             return json.loads(valid_certificates.decode('UTF-8'))

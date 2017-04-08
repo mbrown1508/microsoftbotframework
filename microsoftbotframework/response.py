@@ -56,7 +56,7 @@ class Response:
     def __contains__(self, key):
         return True if key in self.data else False
 
-    def get_remote_auth_token(self):
+    def _get_remote_auth_token(self):
         response_auth_url = "https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token"
         data = {"grant_type": "client_credentials",
                 "client_id": self.app_client_id,
@@ -67,17 +67,17 @@ class Response:
         response_data = response.json()
 
         if self.cache_token:
-            self.store_auth_token(token_type=response_data["token_type"],
-                                  access_token=response_data["access_token"],
-                                  expires_in=response_data["expires_in"],
-                                  )
+            self._store_auth_token(token_type=response_data["token_type"],
+                                   access_token=response_data["access_token"],
+                                   expires_in=response_data["expires_in"],
+                                   )
 
         return {
             'token_type': response_data["token_type"],
             'access_token': response_data["access_token"]
         }
 
-    def store_auth_token(self, token_type, access_token, expires_in):
+    def _store_auth_token(self, token_type, access_token, expires_in):
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(seconds=(int(expires_in) - 60))
         expires_at_string = expires_at.strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -89,10 +89,10 @@ class Response:
         logger.info('Auth token stored')
 
     @staticmethod
-    def has_token_expired(expires_at):
+    def _has_token_expired(expires_at):
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
-    def get_redis_auth_token(self):
+    def _get_redis_auth_token(self):
         self.redis = redis.StrictRedis.from_url(self.redis_uri)
         for name, value in self.redis_config.items():
             if name != 'uri':
@@ -104,9 +104,9 @@ class Response:
         logger = logging.getLogger(__name__)
 
         if token_type is None or access_token is None or token_expires_at is None or \
-                self.has_token_expired(token_expires_at.decode('UTF-8')):
+                self._has_token_expired(token_expires_at.decode('UTF-8')):
             logger.info('Getting remote auth token')
-            return self.get_remote_auth_token()
+            return self._get_remote_auth_token()
         else:
             logger.info('Got stored auth token')
             return {
@@ -114,45 +114,17 @@ class Response:
                 'access_token': access_token.decode('UTF-8')
             }
 
-    def set_header(self):
-        if self.cache_token:
-            token = self.get_redis_auth_token()
-        else:
-            token = self.get_remote_auth_token()
-
-        self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"])}
-
-    def reply_to_activity(self, message, reply_to_id=None, from_info=None,
-                          recipient=None, message_type=None, conversation=None):
-
+    def _set_header(self):
         if self.auth:
-            self.set_header()
+            if self.cache_token:
+                token = self._get_redis_auth_token()
+            else:
+                token = self._get_remote_auth_token()
 
-        conversation_id = self['conversation']["id"] if conversation is None else conversation['id']
-        reply_to_id = self['id'] if reply_to_id is None else reply_to_id
+            self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"])}
 
-        response_url = urljoin(self["serviceUrl"], "/v3/conversations/{}/activities/{}".format(
-                                                                            conversation_id,
-                                                                            reply_to_id))
-
-        response_json = {
-            "from": self["recipient"] if from_info is None else from_info,
-            "type": 'message' if message_type is None else message_type,
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ"),
-            "conversation": self['conversation'] if conversation is None else conversation,
-            "recipient": self["from"] if recipient is None else recipient,
-            "text": message,
-            "replyToId": reply_to_id,
-            "serviceUrl": self['serviceUrl'],
-        }
-
-        # Microsoft Teams specific groups (i think)
-        if 'channelId' in self.data:
-            response_json['channelId'] = self.data['channelId']
-        if 'channelData' in self.data:
-            response_json['channelData'] = self.data['channelData']
-        if 'textFormat' in self.data:
-            response_json['textFormat'] = self.data['textFormat']
+    def _post_request(self, response_url, response_json=None):
+        self._set_header()
 
         logger = logging.getLogger(__name__)
         logger.info('response_url: {}'.format(response_url))
@@ -167,3 +139,81 @@ class Response:
             logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Text {}'
                          .format(post_response.status_code, post_response.text))
 
+        return post_response
+
+    def _preload_message_data(self, fields, additional_fields, override=None):
+        response_json = {}
+        additional_params = {}
+
+        for field in fields:
+            if field in ['from', 'recipient', 'replyToId', 'timestamp']:
+                if field == 'from' and 'recipient' in self.data:
+                    response_json['from'] = self.data['recipient']
+                elif field == 'recipient' and 'from' in self.data:
+                    response_json['recipient'] = self.data['from']
+                elif field == 'replyToId' and 'id' in self.data:
+                    response_json['replyToId'] = self.data['id']
+                elif field == 'timestamp':
+                    response_json["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
+            else:
+                if field in self.data:
+                    response_json[field] = self.data[field]
+
+        if override is not None:
+            for key, value in override.items():
+                if key in response_json:
+                    response_json[key] = value
+
+        for field in additional_fields:
+
+            if field in ['conversationId', 'activityId']:
+                if field == 'conversationId' and 'conversation' in self.data:
+                    if 'id' in self.data['conversation']:
+                        additional_params['conversationId'] = self.data['conversation']['id']
+                elif field == 'activityId' and 'id' in self.data:
+                    additional_params['activityId'] = self.data['id']
+            else:
+                if field in self.data:
+                    additional_params[field] = self.data[field]
+
+        return response_json, additional_params
+
+    def _reply_to_activity(self, message, override_response_json, conversation_id=None,
+                          activity_id=None, service_url=None):
+        response_json, additional_params = self._preload_message_data(
+            fields=['from', 'type', 'timestamp', 'conversation', 'recipient', 'text',
+                    'replyToId', 'serviceUrl', 'channelId', 'channelData', 'textFormat'],
+            additional_fields=['conversationId', 'activityId', 'serviceUrl'],
+            override=override_response_json,
+        )
+        response_json['message'] = message
+
+        response_url = urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
+                               "/v3/conversations/{}/activities/{}".format(
+            additional_params['conversationId'] if conversation_id is None else conversation_id,
+            additional_params['activityId'] if activity_id is None else activity_id))
+
+        return self._post_request(response_url, response_json)
+
+    def reply_to_activity(self, message, conversation_id=None,
+                          activity_id=None, service_url=None, **override_response_json):
+        return self._reply_to_activity(message, override_response_json, conversation_id,
+                                       activity_id, service_url)
+
+    def send_to_conversation(self, message, conversation_id=None,
+                             service_url=None, **override_response_json):
+        return self._reply_to_activity(message, override_response_json, conversation_id,
+                                       '', service_url)
+
+    def delete_activity(self, activity_id=None, conversation_id=None, service_url=None):
+        response_json, additional_params = self._preload_message_data(
+            fields=[],
+            additional_fields=['conversationId', 'activityId', 'serviceUrl'],
+        )
+
+        response_url = urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
+                               "/v3/conversations/{}/activities/{}".format(
+            additional_params['conversationId'] if conversation_id is None else conversation_id,
+            additional_params['activityId'] if activity_id is None else activity_id))
+
+        return self._post_request(response_url)

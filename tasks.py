@@ -22,4 +22,10 @@ def echo_response_async(message):
     if message["type"] == "message":
         response = Response(message)
         message_response = message["text"]
-        response.reply_to_activity(message_response)
+        result = response.send_to_conversation(message_response)
+
+        from time import sleep
+        sleep(5)
+
+        response.delete_activity()
+
