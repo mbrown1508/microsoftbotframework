@@ -22,7 +22,7 @@ def echo_response(message):
 
         sleep(2)
 
-        response.create_conversation()
+        response.create_conversation('lets talk about something really interesting')
 
 
 # This is a asynchronous task

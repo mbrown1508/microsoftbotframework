@@ -217,7 +217,7 @@ class Response:
 
         return self._post_request(response_url, requests.delete)
 
-    def create_conversation(self, service_url=None, **override_response_json):
+    def create_conversation(self, message, topic_name=None, service_url=None, **override_response_json):
         response_json, additional_params = self._preload_message_data(
             fields=['channelData'],
             additional_fields=['serviceUrl'],
@@ -225,7 +225,6 @@ class Response:
         )
         response_json['bot'] = self['recipient']
         response_json['isGroup'] = True
-        response_json['topicName'] = 'Baller'
         response_json['activity'] = {}
         response_json['members'] = []
         response_json['activity'] = {
@@ -234,41 +233,14 @@ class Response:
             'serviceUrl': self['serviceUrl'],
             'channelId': self['channelId'],
             "from": self['recipient'],
-            "text": 'This is the activity-text field'
+            "text": message
         }
-
-        # "activity": {
-        #     "type": "string",
-        #     "id": "string",
-        #     "timestamp": "2017-04-12T12:35:12.992Z",
-        #     "localTimestamp": "2017-04-12T12:35:12.992Z",
-        #     "serviceUrl": "string",
-        #     "channelId": "string",
-        #     "from": {
-        #         "id": "string",
-        #         "name": "string"
-        #     },
-        #     "conversation": {
-        #         "isGroup": true,
-        #         "id": "string",
-        #         "name": "string"
-        #     },
+        if topic_name is not None:
+            response_json['topicName'] = topic_name
 
         response_url = self.urljoin(additional_params['serviceUrl'] if service_url is None else service_url, "/v3/conversations")
 
         return self._post_request(response_url, requests.post, response_json)
-
-        # {
-        #     "isGroup": true,
-        #     "bot": {},
-        #     "members": [],
-        #     "topicName": "string",
-        #     "activity": {},
-        #     "channelData": {}
-        # }
-
-
-
 
     @staticmethod
     def urljoin(url1, url2):
