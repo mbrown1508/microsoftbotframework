@@ -1,5 +1,4 @@
 from .config import Config
-from urllib.parse import urljoin
 import requests
 import datetime
 import redis
@@ -188,7 +187,7 @@ class Response:
         )
         response_json['message'] = message
 
-        response_url = urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
+        response_url = self.urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
                                "/v3/conversations/{}/activities/{}".format(
             additional_params['conversationId'] if conversation_id is None else conversation_id,
             additional_params['activityId'] if activity_id is None else activity_id))
@@ -211,9 +210,24 @@ class Response:
             additional_fields=['conversationId', 'activityId', 'serviceUrl'],
         )
 
-        response_url = urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
+        response_url = self.urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
                                "/v3/conversations/{}/activities/{}".format(
             additional_params['conversationId'] if conversation_id is None else conversation_id,
             additional_params['activityId'] if activity_id is None else activity_id))
 
         return self._post_request(response_url)
+
+    @staticmethod
+    def urljoin(url1, url2):
+        url1_has_end_slash = url1[-1] == '/'
+        url2_has_start_slash = url2[0] == '/'
+
+        print(url1_has_end_slash, url2_has_start_slash)
+
+        if url1_has_end_slash != url2_has_start_slash:
+            return url1 + url2
+        elif url1_has_end_slash and url1_has_end_slash:
+            return url1 + url2[1:]
+        else:
+            return url1 + '/' + url2
+

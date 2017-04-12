@@ -3,10 +3,25 @@ Microsoft Bot Framework is a wrapper for the Microsoft Bot API by Microsoft. It 
 
 The goal was to create a really simple to use library to enable you to interface with the microsoft bot framework.
 
-## To run this app
+## To run this app using the local simulator
+
+Download and run the simulator from: https://docs.botframework.com/en-us/tools/bot-framework-emulator/
+
+Install the library and run main.py
+
+```
+pip install microsoftbotframework
+python main.py
+```
+By default the app runs at http://localhost:5000/api/messages.
+
+Enter this address in the *Enter your endpoint URL* header of the emulator.
+
+Start chatting! The frameowrk by default will act like a parrot and repeat everything you type.
+
+## To run this app using the online bot framework
 Install package using pip. We need to use the master branch of PyJwt as it has methods we need to use to verify the jwt token signature.
 ```sh
-pip install git+git://github.com/jpadilla/pyjwt@master
 pip install microsoftbotframework
 ```
 Create a Microsoft Chatbot | https://dev.botframework.com/bots. Generate 'Microsoft App ID' and 'Microsoft App Secret'. You will need to pass this to the response object (overview below) or you can set it as a global var (recommended) as below.
@@ -21,6 +36,7 @@ other:
     app_client_secret: <Microsoft App Secret>
 ```
 
+
 ## Basic usage
 ```Python
 # Create the MsBot object
@@ -30,7 +46,7 @@ bot.add_process(echo_response)
 # Start the webserver
 bot.run()
 ```
-This will start a server running on localhost, port 5000. 
+This will start a server running on localhost, port 5000.
 ## Process Definition
 Every time a message is recieved all of the methods passed to the chatbot via the MsBot.add_process() method will be called.
 #### Base Definition
@@ -38,7 +54,7 @@ Every function is passed the message from Microsoft when it is called.
 ```python
 def BaseTask(message):
     pass
-``` 
+```
 #### Example Definition
 This will echo back all messages recieved. See details on the Response object below.
 ```python
@@ -82,7 +98,7 @@ response = Response(message)
 response.reply_to_activity('This is my response.')
 ```
 You don't have to pass the message to the Response object but you will have to set all of the required vars before you respond to microsoft.
- 
+
 If you haven't added 'Microsoft App ID' and 'Microsoft App Secret' to the global vars you will have to pass them to the response as follows.
 ```python
 response = Response(message, microsoft_app_id='Microsoft App ID', microsoft_app_secret='Microsoft App Secret')
@@ -96,5 +112,11 @@ celery:
     broker_url: redis://localhost:6379
     broker_pool_limit: None
 redis:
-    
+
+```
+#### Enable Cryptography
+This is a optional requriement as it can be hard to install the crpytography library
+```sh
+pip install git+git://github.com/jpadilla/pyjwt@master
+pip isntall cryptography
 ```

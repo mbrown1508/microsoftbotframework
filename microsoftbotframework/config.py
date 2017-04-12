@@ -1,4 +1,3 @@
-from configparser import ConfigParser
 import os
 import yaml
 import logging
