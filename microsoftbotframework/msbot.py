@@ -3,7 +3,6 @@ from celery.local import PromiseProxy
 from .config import Config
 import requests
 import json
-from jwt.algorithms import RSAAlgorithm
 import jwt
 import redis
 import datetime
