@@ -20,8 +20,14 @@ class MsBot:
         self.debug = config.get_config(debug, 'DEBUG', root='flask')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
         self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
-        self.verify_jwt_signature = config.get_config(verify_jwt_signature, 'VERIFY_JWT_SIGNATURE')
         self.redis = None
+
+        try:
+            from jwt.algorithms import RSAAlgorithm
+            import jwt
+            self.verify_jwt_signature = config.get_config(verify_jwt_signature, 'VERIFY_JWT_SIGNATURE')
+        except ImportError:
+            self.verify_jwt_signature = False
 
         self.cache_certs = True
         if self.redis_uri is None:

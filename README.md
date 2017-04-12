@@ -6,7 +6,6 @@ The goal was to create a really simple to use library to enable you to interface
 ## To run this app
 Install package using pip. We need to use the master branch of PyJwt as it has methods we need to use to verify the jwt token signature.
 ```sh
-pip install git+git://github.com/jpadilla/pyjwt@master
 pip install microsoftbotframework
 ```
 Create a Microsoft Chatbot | https://dev.botframework.com/bots. Generate 'Microsoft App ID' and 'Microsoft App Secret'. You will need to pass this to the response object (overview below) or you can set it as a global var (recommended) as below.
@@ -97,4 +96,10 @@ celery:
     broker_pool_limit: None
 redis:
     
+```
+#### Enable Cryptography
+This is a optional requriement as it can be hard to install the crpytography library
+```sh
+pip install git+git://github.com/jpadilla/pyjwt@master
+pip isntall cryptography
 ```
