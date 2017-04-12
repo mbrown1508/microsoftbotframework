@@ -6,6 +6,11 @@ import json
 import redis
 import datetime
 
+try:
+    from jwt.algorithms import RSAAlgorithm
+    import jwt
+except ImportError:
+    pass
 
 class MsBot:
     def __init__(self, host=None, port=None, debug=None, app_client_id=None, redis_uri=None, verify_jwt_signature=None):
