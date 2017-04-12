@@ -233,7 +233,8 @@ class Response:
             'timestamp': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ"),
             'serviceUrl': self['serviceUrl'],
             'channelId': self['channelId'],
-            "from": self['recipient']
+            "from": self['recipient'],
+            "text": 'This is the activity-text field'
         }
 
         # "activity": {
