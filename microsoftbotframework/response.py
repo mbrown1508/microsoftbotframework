@@ -122,7 +122,7 @@ class Response:
 
             self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"])}
 
-    def _post_request(self, response_url, response_json=None):
+    def _post_request(self, response_url, method, response_json=None):
         self._set_header()
 
         logger = logging.getLogger(__name__)
@@ -130,7 +130,7 @@ class Response:
         logger.info('response_headers: {}'.format(json.dumps(self.headers)))
         logger.info('response_json: {}'.format(json.dumps(response_json)))
 
-        post_response = requests.post(response_url, json=response_json, headers=self.headers)
+        post_response = method(response_url, json=response_json, headers=self.headers)
 
         if post_response.status_code == 200 or post_response.status_code == 201:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text))
@@ -192,7 +192,7 @@ class Response:
             additional_params['conversationId'] if conversation_id is None else conversation_id,
             additional_params['activityId'] if activity_id is None else activity_id))
 
-        return self._post_request(response_url, response_json)
+        return self._post_request(response_url, requests.post, response_json)
 
     def reply_to_activity(self, message, conversation_id=None,
                           activity_id=None, service_url=None, **override_response_json):
@@ -215,7 +215,37 @@ class Response:
             additional_params['conversationId'] if conversation_id is None else conversation_id,
             additional_params['activityId'] if activity_id is None else activity_id))
 
-        return self._post_request(response_url)
+        return self._post_request(response_url, requests.delete)
+
+    def create_conversation(self, service_url=None, **override_response_json):
+        response_json, additional_params = self._preload_message_data(
+            fields=['channelData'],
+            additional_fields=['serviceUrl'],
+            override=override_response_json,
+        )
+        response_json['bot'] = self['recipient']
+        response_json['isGroup'] = True
+        response_json['topicName'] = 'Baller'
+        response_json['activity'] = {}
+        response_json['members'] = []
+
+        print(response_json)
+
+        response_url = self.urljoin(additional_params['serviceUrl'] if service_url is None else service_url, "/v3/conversations")
+
+        return self._post_request(response_url, requests.post, response_json)
+
+        # {
+        #     "isGroup": true,
+        #     "bot": {},
+        #     "members": [],
+        #     "topicName": "string",
+        #     "activity": {},
+        #     "channelData": {}
+        # }
+
+
+
 
     @staticmethod
     def urljoin(url1, url2):

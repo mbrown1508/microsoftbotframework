@@ -13,7 +13,16 @@ def echo_response(message):
     if message["type"] == "message":
         response = Response(message)
         message_response = message["text"]
-        response.reply_to_activity(message_response)
+        mic_response = response.reply_to_activity(message_response)
+
+        from time import sleep
+        sleep(2)
+
+        response.delete_activity(activity_id=mic_response.json()['id'])
+
+        sleep(2)
+
+        response.create_conversation()
 
 
 # This is a asynchronous task
@@ -23,9 +32,4 @@ def echo_response_async(message):
         response = Response(message)
         message_response = message["text"]
         result = response.send_to_conversation(message_response)
-
-        from time import sleep
-        sleep(5)
-
-        response.delete_activity()
 
