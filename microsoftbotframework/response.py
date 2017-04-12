@@ -228,8 +228,30 @@ class Response:
         response_json['topicName'] = 'Baller'
         response_json['activity'] = {}
         response_json['members'] = []
+        response_json['activity'] = {
+            'type': "message",
+            'timestamp': datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ"),
+            'serviceUrl': self['serviceUrl'],
+            'channelId': self['channelId'],
+            "from": self['recipient']
+        }
 
-        print(response_json)
+        # "activity": {
+        #     "type": "string",
+        #     "id": "string",
+        #     "timestamp": "2017-04-12T12:35:12.992Z",
+        #     "localTimestamp": "2017-04-12T12:35:12.992Z",
+        #     "serviceUrl": "string",
+        #     "channelId": "string",
+        #     "from": {
+        #         "id": "string",
+        #         "name": "string"
+        #     },
+        #     "conversation": {
+        #         "isGroup": true,
+        #         "id": "string",
+        #         "name": "string"
+        #     },
 
         response_url = self.urljoin(additional_params['serviceUrl'] if service_url is None else service_url, "/v3/conversations")
 
