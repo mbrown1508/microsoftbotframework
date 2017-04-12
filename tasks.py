@@ -13,15 +13,14 @@ def echo_response(message):
     if message["type"] == "message":
         response = Response(message)
         message_response = message["text"]
-        mic_response = response.reply_to_activity(message_response)
+        response_info = response.reply_to_activity(message_response)
 
         from time import sleep
-        sleep(2)
-
-        response.delete_activity(activity_id=mic_response.json()['id'])
 
         sleep(2)
+        response.delete_activity(activity_id=response_info.json()['id'])
 
+        sleep(2)
         response.create_conversation('lets talk about something really interesting')
 
 
@@ -31,5 +30,5 @@ def echo_response_async(message):
     if message["type"] == "message":
         response = Response(message)
         message_response = message["text"]
-        result = response.send_to_conversation(message_response)
+        response.send_to_conversation(message_response)
 
