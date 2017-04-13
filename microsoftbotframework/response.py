@@ -8,12 +8,14 @@ import json
 
 class Response:
     def __init__(self, message=None, auth=None, app_client_id=None, app_client_secret=None,
-                 redis_uri=None):
+                 redis_uri=None, http_proxy=None, https_proxy=None):
         config = Config()
         self.auth = config.get_config(auth, 'AUTH')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(app_client_secret, 'APP_CLIENT_SECRET')
         self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
+        self.http_proxy = config.get_config(http_proxy, 'HTTP_PROXY')
+        self.https_proxy = config.get_config(https_proxy, 'HTTPS_PROXY')
 
         logger = logging.getLogger(__name__)
 
@@ -185,7 +187,7 @@ class Response:
             additional_fields=['conversationId', 'activityId', 'serviceUrl'],
             override=override_response_json,
         )
-        response_json['message'] = message
+        response_json['text'] = message
 
         response_url = self.urljoin(additional_params['serviceUrl'] if service_url is None else service_url,
                                "/v3/conversations/{}/activities/{}".format(

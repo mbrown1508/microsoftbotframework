@@ -28,6 +28,8 @@ class Config:
                                 'verify_jwt_signature': True,
                                 'app_client_id': None,
                                 'app_client_secret': None,
+                                'http_proxy': None,
+                                'https_proxy': None,
                             }, 'celery': {
                                 'broker_url': None,
                             }, 'flask': {
