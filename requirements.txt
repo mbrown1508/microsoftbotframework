@@ -4,4 +4,4 @@ requests==2.13.0
 redis==2.10.5
 PyYAML==3.12
 cryptography==1.8.1
-git+git://github.com/jpadilla/pyjwt
+PyJWT==1.5.0
