@@ -2,12 +2,12 @@ from setuptools import setup
 
 
 setup(name='microsoftbotframework',
-      version='0.1.15',
+      version='0.1.16',
       description='A wrapper for the microsoft bot framework API',
       classifiers=[
             'Development Status :: 3 - Alpha',
             'License :: OSI Approved :: MIT License',
-            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
             'Topic :: Communications :: Chat',
       ],
       keywords='microsoft bot framework flask celery',
