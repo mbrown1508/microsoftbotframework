@@ -1,5 +1,5 @@
 ##### Configure Async Tasks
-Note: I have only successfully tested async tasks on Linux.
+Note: Async tasks will not work on windows as
 
 You will have to setup a celery backend, I personally use redis but rabbitmq should work as well. I good guide to setting up reddis on Ubuntu can be found here https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-redis-on-ubuntu-16-04.
 
@@ -24,27 +24,4 @@ This method will be executed asynchronously. Several Celery decorators are avail
 @celery.task()
 def AsyncTask(message):
     sleep(10)
-```
-## The Response Object
-The response object is created by passing it the message recieved and then calling Response.reply_to_activity(message).
-```python
-response = Response(message)
-response.reply_to_activity('This is my response.')
-```
-You don't have to pass the message to the Response object but you will have to set all of the required vars before you respond to microsoft.
-
-If you haven't added 'Microsoft App ID' and 'Microsoft App Secret' to the global vars you will have to pass them to the response as follows.
-```python
-response = Response(message, microsoft_app_id='Microsoft App ID', microsoft_app_secret='Microsoft App Secret')
-response.reply_to_activity('This is my response.')
-```
-## Configuration
-Additional configuration can be passed to celery and redis (flask comming soon) by setting them in the config.yaml as follows.
-```
-celery:
-    result_backend: redis://localhost:6379
-    broker_url: redis://localhost:6379
-    broker_pool_limit: None
-redis:
-
 ```
