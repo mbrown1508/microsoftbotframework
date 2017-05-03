@@ -1,7 +1,0 @@
-pages:
-- Home: 'index.md'
-- Define Tasks: 'tasks.md'
-- The Response Object: 'response.md'
-- The Config Object: 'config.md'
-- Verify JWT Token: 'verifyjwt.md'
-- Define Async Tasks: 'asynctasks.md'
