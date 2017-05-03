@@ -3,6 +3,8 @@ Microsoft Bot Framework is a wrapper for the Microsoft Bot API by Microsoft. It 
 
 The goal was to create a really simple to use library to enable you to interface with the microsoft bot framework.
 
+Full Docs can be found here: http://microsoftbotframework.readthedocs.io/
+
 ## To run this app using the local simulator
 
 Download and run the simulator from: https://docs.botframework.com/en-us/tools/bot-framework-emulator/
