@@ -16,6 +16,33 @@ def echo_response(message):
             ReplyToActivity(fill=message,
                             text=message["text"]).send()
 
+    if re.search("cat", message['text']):
+        attachment_id = UploadAttachmentToChannel(
+            fill=message,
+            upload_filename='cute cat.jpg',
+            upload_file_path='./cute cat.jpg',
+            upload_thumbnail_path='./cute cat thumbnail.jpg',
+            upload_type='image/jpeg',
+        ).send()
+
+        # # Attachment details are not really required
+        # attachment_details = GetAttachmentsInfo(
+        #     fill=message,
+        #     attachmentId=attachment_id.json()['id'],
+        # ).send()
+
+        contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
+        thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
+
+        print(contentUrl, thumbnailUrl)
+
+        response_info = ReplyToActivity(fill=message,
+                                        attachments=[{
+                                            'contentType': 'image/jpeg',
+                                            'contentUrl': contentUrl,
+                                            'thumbnailUrl': thumbnailUrl,
+                                            'name': 'cute cat.jpg',
+                                        }]).send()
 
 # This is a asynchronous task
 @celery.task()
@@ -29,6 +56,8 @@ def echo_response_async(message):
             personal_message(message, response_text)
 
         if re.search("cat", message['text']):
+            # TODO: File upload is not working online, only using the simulator.
+            # it returns a 404 error, the url appears to be right...
 
             attachment_id = UploadAttachmentToChannel(
                                     fill=message,
@@ -38,11 +67,11 @@ def echo_response_async(message):
                                     upload_type='image/jpeg',
                                 ).send()
 
-            # # Attachment details are not really required
-            # attachment_details = GetAttachmentsInfo(
-            #     fill=message,
-            #     attachmentId=attachment_id.json()['id'],
-            # ).send()
+            # Attachment details are not really required
+            attachment_details = GetAttachmentsInfo(
+                fill=message,
+                attachmentId=attachment_id.json()['id'],
+            ).send()
 
             contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
             thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
