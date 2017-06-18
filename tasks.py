@@ -38,14 +38,16 @@ def echo_response_async(message):
                                     upload_type='image/jpeg',
                                 ).send()
 
-            # Attachment details are not really required
-            attachment_details = GetAttachmentsInfo(
-                fill=message,
-                attachmentId=attachment_id.json()['id'],
-            ).send()
+            # # Attachment details are not really required
+            # attachment_details = GetAttachmentsInfo(
+            #     fill=message,
+            #     attachmentId=attachment_id.json()['id'],
+            # ).send()
 
             contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
             thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
+
+            print(contentUrl, thumbnailUrl)
 
             response_info = ReplyToActivity(fill=message,
                                             attachments=[{
