@@ -15,19 +15,10 @@ def echo_response(message):
     if message["type"] == "message":
         response = Response()
         message_response = message["text"]
-        response_info = response.reply_to_activity(Activity(fill=message,
+        response.reply_to_activity(Activity(fill=message,
                                                             text=message_response))
 
-        from time import sleep
 
-        sleep(2)
-        response.delete_activity(Activity(fill=message,
-                                          activityId=response_info.json()['id']))
-
-        sleep(2)
-        response.create_conversation(Activity(fill=message,
-                                              topicName='Starting a conversation',
-                                              text='Lets have a conversation'))
 
 
 # This is a asynchronous task
@@ -36,6 +27,16 @@ def echo_response_async(message):
     if message["type"] == "message":
         response = Response()
         message_response = message["text"]
-        response.reply_to_activity(Activity(fill=message,
+        response_info = response.reply_to_activity(Activity(fill=message,
                                             text=message_response))
 
+        from time import sleep
+
+        sleep(5)
+        response.delete_activity(Activity(fill=message,
+                                          activityId=response_info.json()['id']))
+
+        sleep(2)
+        response.create_conversation(Activity(fill=message,
+                                              topicName='Starting a conversation',
+                                              text='Lets have a conversation'))
