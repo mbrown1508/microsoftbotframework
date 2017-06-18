@@ -25,11 +25,11 @@ def echo_response(message):
             upload_type='image/jpeg',
         ).send()
 
-        # # Attachment details are not really required
-        # attachment_details = GetAttachmentsInfo(
-        #     fill=message,
-        #     attachmentId=attachment_id.json()['id'],
-        # ).send()
+        # Attachment details are not really required
+        attachment_details = GetAttachmentsInfo(
+            fill=message,
+            attachmentId=attachment_id.json()['id'],
+        ).send()
 
         contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
         thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
@@ -59,30 +59,31 @@ def echo_response_async(message):
             # TODO: File upload is not working online, only using the simulator.
             # it returns a 404 error, the url appears to be right...
 
-            attachment_id = UploadAttachmentToChannel(
-                                    fill=message,
-                                    upload_filename='cute cat.jpg',
-                                    upload_file_path='./cute cat.jpg',
-                                    upload_thumbnail_path='./cute cat thumbnail.jpg',
-                                    upload_type='image/jpeg',
-                                ).send()
+            # attachment_id = UploadAttachmentToChannel(
+            #                         fill=message,
+            #                         upload_filename='cute cat.jpg',
+            #                         upload_file_path='./cute cat.jpg',
+            #                         upload_thumbnail_path='./cute cat thumbnail.jpg',
+            #                         upload_type='image/jpeg',
+            #                     ).send()
+            #
+            # # Attachment details are not really required
+            # attachment_details = GetAttachmentsInfo(
+            #     fill=message,
+            #     attachmentId=attachment_id.json()['id'],
+            # ).send()
+            #
+            # contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
+            # thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
+            #
+            # print(contentUrl, thumbnailUrl)
 
-            # Attachment details are not really required
-            attachment_details = GetAttachmentsInfo(
-                fill=message,
-                attachmentId=attachment_id.json()['id'],
-            ).send()
-
-            contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
-            thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
-
-            print(contentUrl, thumbnailUrl)
+            contentUrl = 'https://imgflip.com/s/meme/Cute-Cat.jpg'
 
             response_info = ReplyToActivity(fill=message,
                                             attachments=[{
                                                 'contentType': 'image/jpeg',
                                                 'contentUrl': contentUrl,
-                                                'thumbnailUrl': thumbnailUrl,
                                                 'name': 'cute cat.jpg',
                                             }]).send()
 
