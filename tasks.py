@@ -19,7 +19,26 @@ def echo_response(message):
                                             text=message_response,
                                             reply_to_activity=True))
 
+    from time import sleep
 
+    # sleep(5)
+    # response.delete_activity(Activity(fill=message,
+    #                                  activityId=response_info.json()['id']))
+
+    sleep(2)
+    response_info = response.create_conversation(Activity(fill=message,
+                                                          topicName='Starting a conversation',
+                                                          text='Lets have a conversation'))
+
+    activity = Activity(fill=message,
+                        conversation={'id': response_info.json()['id']},
+                        text='What was said')
+
+    # make sure that we remove and team or channel data from the request when working in teams.
+    if activity.channelData is not None and 'tenant' in activity.channelData:
+        activity.channelData = {"tenant": {"id": activity.channelData["tenant"]["id"]}}
+
+    response.send_to_conversation(activity)
 
 
 # This is a asynchronous task
