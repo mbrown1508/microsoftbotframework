@@ -13,9 +13,9 @@ def respond_to_conversation_update(message):
 def echo_response(message):
     if message["type"] == "message":
         message_response = message["text"]
-        reply_to_activity = ReplyToActivity(fill=message,
-                                            text=message_response,
-                                            reply_to_activity=True).send()
+        ReplyToActivity(fill=message,
+                        text=message_response,
+                        reply_to_activity=True).send()
 
 
 # This is a asynchronous task
