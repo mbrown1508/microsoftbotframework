@@ -39,6 +39,19 @@ def echo_response_async(message):
         #                                  activityId=response_info.json()['id']))
 
         sleep(2)
-        response.create_conversation(Activity(fill=message,
-                                              topicName='Starting a conversation',
-                                              text='Lets have a conversation'))
+        response_info = response.create_conversation(Activity(fill=message,
+                                                     topicName='Starting a conversation',
+                                                     text='Lets have a conversation'))
+
+        activity = Activity(fill=message,
+                            conversation={'id': response_info['id']},
+                            text='What was said')
+
+        # make sure that we remove and team or channel data from the request when working in teams.
+        if activity.channelData is not None:
+            activity.channelData = {"tenant": {"id": activity.channelData["tenant"]["id"]}}
+        activity.channelId = None
+        activity.conversation = None
+
+        response.send_to_conversation(activity)
+
