@@ -184,6 +184,7 @@ class Response:
             'bot': activity.fromAccount if activity.bot is None else activity.bot,
             'isGroup': False if activity.isGroup is None else activity.isGroup,
             'members': [activity.recipient] if activity.members is None else activity.members,
+            'channelData': activity.channelData,
             'activity': activity.to_dict(),
         }
 
