@@ -3,6 +3,8 @@ Microsoft Bot Framework is a wrapper for the Microsoft Bot API by Microsoft. It 
 
 The goal was to create a really simple to use library to enable you to interface with the microsoft bot framework.
 
+Full Docs can be found here: http://microsoftbotframework.readthedocs.io/
+
 ## To run this app using the local simulator
 
 Download and run the simulator from: https://docs.botframework.com/en-us/tools/bot-framework-emulator/
@@ -13,13 +15,14 @@ pip install microsoftbotframework
 ```
 #### Define a task
 Create a file in the root directory called tasks.py. In the file define a task as follows.
+More information on the ReplyToActivity object and others can be found at http://microsoftbotframework.readthedocs.io/en/latest/conversationoperations/
 ``` python
-from microsoftbotframework import Response
+from microsoftbotframework import ReplyToActivity
 
 def echo_response(message):
     if message["type"] == "message":
-        response = Response(message)
-        response_info = response.reply_to_activity(message["text"])
+        ReplyToActivity(fill=message,
+                        text=message["text"]).send()
 ```
 
 #### Create the main file

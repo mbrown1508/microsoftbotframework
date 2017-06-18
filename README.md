@@ -15,6 +15,7 @@ pip install microsoftbotframework
 ```
 #### Define a task
 Create a file in the root directory called tasks.py. In the file define a task as follows.
+More information on the ReplyToActivity object and others can be found at http://microsoftbotframework.readthedocs.io/en/latest/conversationoperations/
 ``` python
 from microsoftbotframework import ReplyToActivity
 

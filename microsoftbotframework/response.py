@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class Response:
     def __init__(self, **kwargs):
         config = Config()
-        self.auth = config.get_config(kwargs.pop('auth', None), 'AUTH')
+        self.auth = config.get_config(kwargs.pop('auth', True), 'AUTH')
         self.app_client_id = config.get_config(kwargs.pop('app_client_id', None), 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(kwargs.pop('app_client_secret', None), 'APP_CLIENT_SECRET')
         self.redis_uri = config.get_config(kwargs.pop('redis_uri', None), 'URI', root='redis')

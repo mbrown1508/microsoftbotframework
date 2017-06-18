@@ -39,7 +39,7 @@ class Activity(Response):
         self.activityId = None
 
         # Used in create Conversation - not is not required and will default to from
-        self.isGroup = setattr(self, 'isGroup', kwargs.get('isGroup', None))
+        self.isGroup = setattr(self, 'isGroup', kwargs.get('isGroup', False))
         self.members = setattr(self, 'members', kwargs.get('members', None))
         self.bot = setattr(self, 'bot', kwargs.get('bot', None))
 
@@ -58,7 +58,7 @@ class Activity(Response):
         # Create timestamp
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 
-        flip = kwargs.pop('flip', True)
+        flip = kwargs.pop('flip', False if fill is None else True)
         if flip:
             self.flip()
 

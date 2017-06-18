@@ -12,9 +12,8 @@ def respond_to_conversation_update(message):
 
 def echo_response(message):
     if message["type"] == "message":
-        message_response = message["text"]
         ReplyToActivity(fill=message,
-                        text=message_response).send()
+                        text=message["text"]).send()
 
 
 # This is a asynchronous task
@@ -27,12 +26,14 @@ def echo_response_async(message):
 
         sleep(5)
 
+        # This activity doesn't seem to work in most chat applications.
         DeleteActivity(fill=message,
                        activityId=response_info.json()['id']).send()
 
         sleep(2)
 
         # The activity passed in the create conversation seems to have no effect.
+        # This also triggers a conversation update. May want to check if your bot is the one joining the conversation.
         response_info = CreateConversation(fill=message,
                                            topicName='Starting a conversation',
                                            text='Lets have a conversation').send()
@@ -42,6 +43,7 @@ def echo_response_async(message):
                                                   text=message_response)
 
         # make sure that we remove and team or channel data from the request when working in teams.
+        # If the bot is only designed to work in teams this could be passed in the arguments to SendToConversation
         if send_to_conversation.channelData is not None and 'tenant' in send_to_conversation.channelData:
             send_to_conversation.channelData = {"tenant": {"id": send_to_conversation.channelData["tenant"]["id"]}}
 

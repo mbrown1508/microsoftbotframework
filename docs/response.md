@@ -1,13 +1,10 @@
-# The Response Object
-The response object is created by passing it the message recieved and then calling Response.reply_to_activity(message).
-```python
-response = Response(message)
-response.reply_to_activity('This is my response.')
-```
-You don't have to pass the message to the Response object but you will have to set all of the required vars before you respond to microsoft.
+# Response Object
+The response object is used whenever responding to the Microsoft Bot API. It is extended by all of the conversation operations and the state operations in the future.
 
-If you haven't added 'Microsoft App ID' and 'Microsoft App Secret' to the global vars you will have to pass them to the response as follows.
-```python
-response = Response(message, microsoft_app_id='Microsoft App ID', microsoft_app_secret='Microsoft App Secret')
-response.reply_to_activity('This is my response.')
-```
+The Response Object takes the following arguments:
+* app_client_id - You can set app_client_id via arguments although it is recomended you use environemnt vars to do so.
+* app_client_secret - You can set app_client_secret via arguments although it is recomended you use environemnt vars to do so.
+* auth - auth is enabled by default if app_client_id and app_client_secret are enabled. auth can be used to disable it. 
+* redis_uri - This argument enables you to set the redis_uri to use to cache the jwt token
+* http_proxy - This enables you to set a http_proxy for the response.
+* https_proxy - This enables you to set a https_proxy for the response.

@@ -8,10 +8,10 @@ def BaseTask(message):
     pass
 ```
 ## Example Definition
-This will echo back all messages recieved. See details on the Response object below.
+This will echo back all messages recieved. For more information on ReplyToActivity see conversation operations.
 ```python
-def RespondToConversation(message):
-    if message["type"]=="message":
-        response = Response(message)
-        response.reply_to_activity(message["text"])
+def echo_response(message):
+    if message["type"] == "message":
+        ReplyToActivity(fill=message,
+                        text=message["text"]).send()
 ```
