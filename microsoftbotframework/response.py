@@ -123,6 +123,7 @@ class Response:
     def _request(self, response_url, method, response_json=None):
         self._set_header()
 
+        logger.info(str(method))
         logger.info('response_url: {}'.format(response_url))
         logger.info('response_headers: {}'.format(json.dumps(self.headers)))
         logger.info('response_json: {}'.format(json.dumps(response_json)))
