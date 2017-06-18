@@ -4,7 +4,7 @@ import requests
 
 class ReplyToActivity(Activity):
     def __init__(self, **kwargs):
-        super(ReplyToActivity, self).__init__(**kwargs)
+        super(ReplyToActivity, self).__init__(reply_to_activity=True, **kwargs)
 
     def send(self):
         response_url = self.urljoin(self.serviceUrl,

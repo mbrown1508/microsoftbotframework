@@ -14,8 +14,7 @@ def echo_response(message):
     if message["type"] == "message":
         message_response = message["text"]
         ReplyToActivity(fill=message,
-                        text=message_response,
-                        reply_to_activity=True).send()
+                        text=message_response).send()
 
 
 # This is a asynchronous task
@@ -24,8 +23,7 @@ def echo_response_async(message):
     if message["type"] == "message":
         message_response = message["text"]
         response_info = ReplyToActivity(fill=message,
-                                        text=message_response,
-                                        reply_to_activity=True).send()
+                                        text=message_response).send()
 
         sleep(5)
 
