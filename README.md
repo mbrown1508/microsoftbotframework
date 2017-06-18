@@ -16,12 +16,12 @@ pip install microsoftbotframework
 #### Define a task
 Create a file in the root directory called tasks.py. In the file define a task as follows.
 ``` python
-from microsoftbotframework import Response
+from microsoftbotframework import ReplyToActivity
 
 def echo_response(message):
     if message["type"] == "message":
-        response = Response(message)
-        response_info = response.reply_to_activity(message["text"])
+        ReplyToActivity(fill=message,
+                        text=message["text"]).send()
 ```
 
 #### Create the main file
