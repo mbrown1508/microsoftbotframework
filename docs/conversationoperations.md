@@ -4,8 +4,8 @@ Once you recieve a message from the microsoft bot api you will want to respond u
 * Create Conversation - Creates a new conversation.
 * Send to Conversation - Sends an activity (message) to the end of the specified conversation.
 * Reply to Activity - Sends an activity (message) to the specified conversation, as a reply to the specified activity.
-* Get Conversation Members (Not Implemented) - Gets the members of the specified conversation.
-* Get Activity Members (Not Implemented) - Gets the members of the specified activity within the specified conversation.
+* Get Conversation Members - Gets the members of the specified conversation.
+* Get Activity Members - Gets the members of the specified activity within the specified conversation.
 * Update Activity (Not Implemented) - Updates an existing activity.
 * Delete Activity - Deletes an existing activity.
 * Upload Attachment to Channel (Not Implemented) - Uploads an attachment directly into a channel's blob storage.
@@ -33,7 +33,7 @@ This example:
 
 The send() method is called at the end to post the message to the service. 
 
-``` python
+```python
 send_to_conversation = SendToConversation(fill=message,
                                           conversation={'id': 'jg3alifjua8sdljn9abiuao4ihbimroivb'},
                                           text='How are you today?').send()
@@ -47,7 +47,7 @@ This example:
 
 The send() method is called at the end to post the message to the service. 
 
-``` python
+```python
 ReplyToActivity(fill=message,
                 text='I am good thanks.').send()
 ```
@@ -71,7 +71,6 @@ response_info = CreateConversation(fill=message,
                                    members=[{"id": "l0skjasdkfjkjlshdyvoiunbqiewur"}],
                                    topicName='Starting a conversation',
                                    text='Lets have a conversation').send()
-print(response_info.json()['id'])
 ```
 
 ## DeleteActivity
@@ -89,4 +88,12 @@ response_info = ReplyToActivity(fill=message,
 
 DeleteActivity(fill=message,
                activityId=response_info.json()['id']).send()
+```
+
+## GetConversationMembers and GetActivityMembers
+Both work much as described. The only fields required are conversationId and activityId accordingly.
+
+```python
+activity_members = GetActivityMembers(conversationId="asdfwetjerjbbvwre",
+                                      activityId="asdkbuaeniouhrvqeoruih").send()
 ```

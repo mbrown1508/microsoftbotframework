@@ -58,6 +58,11 @@ class Activity(Response):
         # Create timestamp
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 
+        # A nicer way to set conversation = {"id": "asdfsdf"}
+        conversationId = kwargs.pop('conversationId', None)
+        if conversationId is not None:
+            self.conversation = {"id": conversationId}
+
         flip = kwargs.pop('flip', False if fill is None else True)
         if flip:
             self.flip()

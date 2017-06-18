@@ -49,7 +49,7 @@ def personal_message(message, response_text):
                                        text=response_text).send()
 
     send_to_conversation = SendToConversation(fill=message,
-                                              conversation={'id': response_info.json()['id']},
+                                              conversationId=response_info.json()['id'],
                                               text=response_text)
 
     # make sure that we remove and team or channel data from the request when working in teams.
