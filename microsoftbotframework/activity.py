@@ -1,9 +1,10 @@
 import re
 import datetime
+from . import Response
 
 
-class Activity:
-    def __init__(self, fill=None, flip=True, reply_to_activity=False, **kwargs):
+class Activity(Response):
+    def __init__(self, **kwargs):
         self.defaults = {
             'action': None,
             'attachments': None,          # Attachment[]
@@ -43,8 +44,10 @@ class Activity:
         self.bot = setattr(self, 'bot', kwargs.get('bot', None))
 
         for (prop, default) in self.defaults.items():
-            setattr(self, prop, kwargs.get(prop, default))
+            setattr(self, prop, kwargs.pop(prop, default))
 
+        fill = kwargs.pop('fill', None)
+        reply_to_activity = kwargs.pop('reply_to_activity', None)
         if fill is not None:
             self.fill(fill, reply_to_activity)
 
@@ -55,8 +58,11 @@ class Activity:
         # Create timestamp
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 
+        flip = kwargs.pop('flip', True)
         if flip:
             self.flip()
+
+        super(Activity, self).__init__(**kwargs)
 
     def flip(self):
         recipient = self.recipient

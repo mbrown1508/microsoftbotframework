@@ -8,15 +8,14 @@ import json
 logger = logging.getLogger(__name__)
 
 class Response:
-    def __init__(self, auth=None, app_client_id=None, app_client_secret=None,
-                 redis_uri=None, http_proxy=None, https_proxy=None):
+    def __init__(self, **kwargs):
         config = Config()
-        self.auth = config.get_config(auth, 'AUTH')
-        self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
-        self.app_client_secret = config.get_config(app_client_secret, 'APP_CLIENT_SECRET')
-        self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
-        self.http_proxy = config.get_config(http_proxy, 'HTTP_PROXY')
-        self.https_proxy = config.get_config(https_proxy, 'HTTPS_PROXY')
+        self.auth = config.get_config(kwargs.pop('auth', None), 'AUTH')
+        self.app_client_id = config.get_config(kwargs.pop('app_client_id', None), 'APP_CLIENT_ID')
+        self.app_client_secret = config.get_config(kwargs.pop('app_client_secret', None), 'APP_CLIENT_SECRET')
+        self.redis_uri = config.get_config(kwargs.pop('redis_uri', None), 'URI', root='redis')
+        self.http_proxy = config.get_config(kwargs.pop('http_proxy', None), 'HTTP_PROXY')
+        self.https_proxy = config.get_config(kwargs.pop('https_proxy', None), 'HTTPS_PROXY')
 
         if self.app_client_id is None:
             logger.info('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')
@@ -149,51 +148,3 @@ class Response:
             return url1 + url2[1:]
         else:
             return url1 + '/' + url2
-
-    def reply_to_activity(self, activity):
-        response_url = self.urljoin(activity.serviceUrl,
-                                    "/v3/conversations/{}/activities/{}".format(
-                                        activity.conversation['id'],
-                                        activity.activityId))
-
-        return self._request(response_url, requests.post, activity.to_dict())
-
-    def send_to_conversation(self, activity):
-        response_url = self.urljoin(activity.serviceUrl,
-                                    "/v3/conversations/{}/activities".format(
-                                        activity.conversation['id']))
-
-        return self._request(response_url, requests.post, activity.to_dict())
-
-    def delete_activity(self, activity):
-        response_url = self.urljoin(activity.serviceUrl,
-                                        "/v3/conversations/{}/activities/{}".format(
-                                            activity.conversation['id'],
-                                            activity.activityId))
-
-        return self._request(response_url, requests.delete)
-
-    def create_conversation(self, activity):
-        # make sure that we remove and team or channel data from the request when working in teams.
-        if activity.channelData is not None and 'tenant' in activity.channelData:
-            activity.channelData = {"tenant": {"id": activity.channelData["tenant"]["id"]}}
-        activity.channelId = None
-        activity.conversation = None
-
-        response_json = {
-            'bot': activity.fromAccount if activity.bot is None else activity.bot,
-            'isGroup': False if activity.isGroup is None else activity.isGroup,
-            'members': [activity.recipient] if activity.members is None else activity.members,
-            'channelData': activity.channelData,
-            'activity': activity.to_dict(),
-        }
-
-        if len(response_json['members']) > 1:
-            response_json['isGroup'] = True
-
-        if activity.topicName is not None:
-            response_json['topicName'] = activity.topicName
-
-        response_url = self.urljoin(activity.serviceUrl, "/v3/conversations")
-
-        return self._request(response_url, requests.post, response_json)

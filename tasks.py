@@ -1,76 +1,50 @@
-from microsoftbotframework import Response
-from microsoftbotframework import Activity
+from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation
 import celery
+from time import sleep
 
 
 def respond_to_conversation_update(message):
     if message["type"] == "conversationUpdate":
-        response = Response()
         message_response = 'Have fun with the Microsoft Bot Framework'
-        response.reply_to_activity(Activity(fill=message,
-                                            text=message_response))
+        ReplyToActivity(fill=message,
+                        text=message_response).send()
 
 
 def echo_response(message):
     if message["type"] == "message":
-        response = Response()
         message_response = message["text"]
-        response.reply_to_activity(Activity(fill=message,
+        reply_to_activity = ReplyToActivity(fill=message,
                                             text=message_response,
-                                            reply_to_activity=True))
-
-    from time import sleep
-
-    # sleep(5)
-    # response.delete_activity(Activity(fill=message,
-    #                                  activityId=response_info.json()['id']))
-
-    sleep(2)
-    response_info = response.create_conversation(Activity(fill=message,
-                                                          topicName='Starting a conversation',
-                                                          text='Lets have a conversation'))
-
-    activity = Activity(fill=message,
-                        conversation={'id': response_info.json()['id']},
-                        text='What was said')
-
-    # make sure that we remove and team or channel data from the request when working in teams.
-    if activity.channelData is not None and 'tenant' in activity.channelData:
-        activity.channelData = {"tenant": {"id": activity.channelData["tenant"]["id"]}}
-
-    response.send_to_conversation(activity)
+                                            reply_to_activity=True).send()
 
 
 # This is a asynchronous task
 @celery.task()
 def echo_response_async(message):
     if message["type"] == "message":
-        response = Response()
         message_response = message["text"]
-        response_info = response.reply_to_activity(Activity(fill=message,
-                                            text=message_response,
-                                            reply_to_activity=True))
+        response_info = ReplyToActivity(fill=message,
+                                        text=message_response,
+                                        reply_to_activity=True).send()
 
-        from time import sleep
+        sleep(5)
 
-        #sleep(5)
-        #response.delete_activity(Activity(fill=message,
-        #                                  activityId=response_info.json()['id']))
+        DeleteActivity(fill=message,
+                       activityId=response_info.json()['id']).send()
 
         sleep(2)
-        response_info = response.create_conversation(Activity(fill=message,
-                                                     topicName='Starting a conversation',
-                                                     text='Lets have a conversation'))
 
-        activity = Activity(fill=message,
-                            conversation={'id': response_info.json()['id']},
-                            text='What was said')
+        # The activity passed in the create conversation seems to have no effect.
+        response_info = CreateConversation(fill=message,
+                                           topicName='Starting a conversation',
+                                           text='Lets have a conversation').send()
+
+        send_to_conversation = SendToConversation(fill=message,
+                                                  conversation={'id': response_info.json()['id']},
+                                                  text=message_response)
 
         # make sure that we remove and team or channel data from the request when working in teams.
-        if activity.channelData is not None:
-            activity.channelData = {"tenant": {"id": activity.channelData["tenant"]["id"]}}
-        activity.channelId = None
-        activity.conversation = None
+        if send_to_conversation.channelData is not None and 'tenant' in send_to_conversation.channelData:
+            send_to_conversation.channelData = {"tenant": {"id": send_to_conversation.channelData["tenant"]["id"]}}
 
-        response.send_to_conversation(activity)
-
+        send_to_conversation.send()
