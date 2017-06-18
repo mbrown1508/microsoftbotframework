@@ -76,7 +76,7 @@ class GetConversationMembers(Activity):
 
     def send(self):
         response_url = self.urljoin(self.serviceUrl,
-                                    "/v3/conversations/{}/".format(
+                                    "/v3/conversations/{}/members".format(
                                     self.conversation['id']))
 
         return self._request(response_url, requests.get)
