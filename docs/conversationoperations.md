@@ -19,12 +19,14 @@ Every Conversation Operation has a send() method that is called to send the mess
 All of the conversation operations extend the Activity object. The Activity object itself extends the Response Object. See http://microsoftbotframework.readthedocs.io/en/latest/response/ for more details on the arguments accepted.
 
 The activity has all of the arguments listed here under Activity Object with the addition of the following arguments. https://docs.microsoft.com/en-us/bot-framework/rest-api/bot-framework-rest-connector-api-reference#activity-object . The only exception is the from argument which has been renamed to fromAccount due to reserved keywords.
+
 * fill - You can pass the message object in the task declaration to fill and it will attempt to fill all of the fields it can. ie channelData which is the same in the response and the message you recieve.
 * flip (default True) - If fill is not None then flip will swap the recipient and fromAccount variables which is useful when replying to activity or responding to a conversation.
   
 
 ## SendToConversation
 This example:
+
 * Prefills all fields possible by passing the message to the constructor.
 * Sets the conversation id to jg3alifjua8sdljn9abiuao4ihbimroivb
 * Sends the text 'How are you today?'
@@ -39,6 +41,7 @@ send_to_conversation = SendToConversation(fill=message,
 
 ## ReplyToActivity
 This example:
+
 * Prefills all fields possible by passing the message to the constructor.
 * Responds with the text 'I am good thanks.'
 
@@ -51,12 +54,14 @@ ReplyToActivity(fill=message,
 
 ## CreateConversation
 The createConversation object has 4 additional arguments:
+
 * isGroup - Flag to indicate whether or not this is a group conversation. Set to true if this is a group conversation; otherwise, false. The default is false. To start a group conversation, the channel must support group conversations. Defaults to False.
 * bot - a json object with the id and name of the bot.
 * members - Array of ChannelAccount objects that identify the members of the conversation. This list must contain a single user unless isGroup is set to true. This list may include other bots.
 * topicName - Title of the conversation.
 
 This example:
+
 * Prefills the bot field using fill
 * Sets a single member for the conversation.
 * Sets the topicName and text for the first message to the conversation.
@@ -73,6 +78,7 @@ print(response_info.json()['id'])
 Note: The delete activity doesn't seem to work on many platforms. I have been unable to test the functionality successfully.
 
 This example:
+
 * Replys to a activity and stores the response information which includes the activityId
 * Prefills the DeleteActivity object
 * Sets the activityId to delete
