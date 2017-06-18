@@ -32,7 +32,7 @@ def echo_response_async(message):
             UploadAttachmentToChannel(
                 fill=message,
                 upload_filename='cute cat.jpg',
-                upload_file_path='/home/skippy/Desktop/cute cat.jpg',
+                upload_file_path='./cute cat.jpg',
                 upload_type='image/jpeg',
             ).send()
         else:
