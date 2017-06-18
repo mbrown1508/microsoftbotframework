@@ -177,6 +177,8 @@ class Response:
         # make sure that we remove and team or channel data from the request when working in teams.
         if activity.channelData is not None:
             activity.channelData = {"tenant": activity.channelData["tenant"]}
+        activity.channelId = None
+        activity.conversation = None
 
         response_json = {
             'bot': activity.fromAccount if activity.bot is None else activity.bot,
