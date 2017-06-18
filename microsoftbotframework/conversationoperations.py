@@ -1,4 +1,4 @@
-from . import Activity
+from . import Activity, Response
 import requests
 import base64
 
@@ -133,3 +133,34 @@ class UploadAttachmentToChannel(Activity):
         if thumbnail_filename is not None:
             with open(thumbnail_filename, "rb") as image_file:
                 self.encoded_thumbnail = str(base64.b64encode(image_file.read()))[2:-1]
+
+
+class GetAttachmentsInfo(Activity):
+    def __init__(self, **kwargs):
+        self.attachmentId = kwargs.pop('attachmentId', None)
+        super(GetAttachmentsInfo, self).__init__(**kwargs)
+
+    def send(self):
+        response_url = self.urljoin(self.serviceUrl,
+                                    "/v3/attachments/{}".format(
+                                    self.attachmentId))
+
+        return self._request(response_url, requests.get)
+
+
+class GetAttachment(Activity):
+    def __init__(self, **kwargs):
+        self.attachmentId = kwargs.pop('attachmentId', None)
+        self.viewId = kwargs.pop('viewId', None)
+
+        super(GetAttachment, self).__init__(**kwargs)
+
+    def get_response_url(self):
+        return self.urljoin(self.serviceUrl,
+                        "/v3/attachments/{}/views/{}".format(
+                            self.attachmentId,
+                            self.viewId
+                        ))
+
+    def send(self):
+        return self._request(self.get_response_url(), requests.get)

@@ -1,4 +1,4 @@
-from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers, UploadAttachmentToChannel
+from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers, UploadAttachmentToChannel, GetAttachmentsInfo, GetAttachment
 import celery
 from time import sleep
 import re
@@ -13,14 +13,6 @@ def respond_to_conversation_update(message):
 
 def echo_response(message):
     if message["type"] == "message":
-        if re.search("cat", message['text']):
-            UploadAttachmentToChannel(
-                fill=message,
-                upload_filename='cute cat.jpg',
-                upload_file_path='./cute cat.jpg',
-                upload_type='image/jpeg',
-            ).send()
-        else:
             ReplyToActivity(fill=message,
                             text=message["text"]).send()
 
@@ -36,13 +28,33 @@ def echo_response_async(message):
             response_text = 'Conversation: {}; Activity: {}'.format(conversation_response.text, activity_response.text)
             personal_message(message, response_text)
 
-        elif re.search("cat", message['text']):
-            UploadAttachmentToChannel(
+        if re.search("cat", message['text']):
+
+            attachment_id = UploadAttachmentToChannel(
+                                    fill=message,
+                                    upload_filename='cute cat.jpg',
+                                    upload_file_path='./cute cat.jpg',
+                                    upload_thumbnail_path='./cute cat thumbnail.jpg',
+                                    upload_type='image/jpeg',
+                                ).send()
+
+            # Attachment details are not really required
+            attachment_details = GetAttachmentsInfo(
                 fill=message,
-                upload_filename='cute cat.jpg',
-                upload_file_path='./cute cat.jpg',
-                upload_type='image/jpeg',
+                attachmentId=attachment_id.json()['id'],
             ).send()
+
+            contentUrl = '{}/v3/attachments/{}/views/original'.format(message['serviceUrl'], attachment_id.json()['id'])
+            thumbnailUrl = '{}/v3/attachments/{}/views/thumbnail'.format(message['serviceUrl'], attachment_id.json()['id'])
+
+            response_info = ReplyToActivity(fill=message,
+                                            attachments=[{
+                                                'contentType': 'image/jpeg',
+                                                'contentUrl': contentUrl,
+                                                'thumbnailUrl': thumbnailUrl,
+                                                'name': 'cute cat.jpg',
+                                            }]).send()
+
         else:
 
             response_info = ReplyToActivity(fill=message,
