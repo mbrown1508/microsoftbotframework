@@ -60,7 +60,7 @@ class Activity:
         self.fromAccount = recipient
 
     def fill(self, message):
-        skip = ['channelData', 'timestamp', 'localTimestamp', 'entities', 'text', 'id', 'membersAdded', 'membersRemoved', 'attachments']
+        skip = ['timestamp', 'localTimestamp', 'entities', 'text', 'id', 'membersAdded', 'membersRemoved', 'attachments']
         for key, value in message.items():
             if key == 'from':
                 if getattr(self, 'fromAccount') is None:
