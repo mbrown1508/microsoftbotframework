@@ -13,8 +13,16 @@ def respond_to_conversation_update(message):
 
 def echo_response(message):
     if message["type"] == "message":
-        ReplyToActivity(fill=message,
-                        text=message["text"]).send()
+        if re.search("cat", message['text']):
+            UploadAttachmentToChannel(
+                fill=message,
+                upload_filename='cute cat.jpg',
+                upload_file_path='./cute cat.jpg',
+                upload_type='image/jpeg',
+            ).send()
+        else:
+            ReplyToActivity(fill=message,
+                            text=message["text"]).send()
 
 
 # This is a asynchronous task

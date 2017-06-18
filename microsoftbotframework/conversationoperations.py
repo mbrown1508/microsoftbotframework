@@ -113,8 +113,8 @@ class UploadAttachmentToChannel(Activity):
 
     def send(self):
         response_json = {
-            'type': self.fromAccount if self.bot is None else self.bot,
-            'name': False if self.isGroup is None else self.isGroup,
+            'type': self.upload_type,
+            'name': self.upload_filename,
             'originalBase64': self.encoded_file,
             'thumbnailBase64': self.encoded_thumbnail,
         }
@@ -128,8 +128,8 @@ class UploadAttachmentToChannel(Activity):
     def upload_file(self, filename, thumbnail_filename=None):
         # Upload file
         with open(filename, "rb") as image_file:
-            self.encoded_file = base64.b64encode(image_file.read())
+            self.encoded_file = str(base64.b64encode(image_file.read()))[2:-2]
 
         if thumbnail_filename is not None:
             with open(thumbnail_filename, "rb") as image_file:
-                self.encoded_thumbnail = base64.b64encode(image_file.read())
+                self.encoded_thumbnail = str(base64.b64encode(image_file.read()))[2:-1]
