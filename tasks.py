@@ -44,7 +44,7 @@ def echo_response_async(message):
                                                      text='Lets have a conversation'))
 
         activity = Activity(fill=message,
-                            conversation={'id': response_info['id']},
+                            conversation={'id': response_info.json()['id']},
                             text='What was said')
 
         # make sure that we remove and team or channel data from the request when working in teams.
