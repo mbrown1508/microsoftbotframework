@@ -34,9 +34,9 @@ def echo_response_async(message):
 
         from time import sleep
 
-        sleep(5)
-        response.delete_activity(Activity(fill=message,
-                                          activityId=response_info.json()['id']))
+        #sleep(5)
+        #response.delete_activity(Activity(fill=message,
+        #                                  activityId=response_info.json()['id']))
 
         sleep(2)
         response.create_conversation(Activity(fill=message,

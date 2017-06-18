@@ -179,6 +179,8 @@ class Response:
             activity.channelData = {"tenant": activity.channelData["tenant"]}
         activity.channelId = None
         activity.conversation = None
+        activity.fromAccount = None
+        activity.recipient = None
 
         response_json = {
             'bot': activity.fromAccount if activity.bot is None else activity.bot,
