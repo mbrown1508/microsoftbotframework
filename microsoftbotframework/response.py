@@ -176,11 +176,9 @@ class Response:
     def create_conversation(self, activity):
         # make sure that we remove and team or channel data from the request when working in teams.
         if activity.channelData is not None:
-            activity.channelData = {"tenant": activity.channelData["tenant"]}
+            activity.channelData = {"tenant": {"id": activity.channelData["tenant"]["id"]}}
         activity.channelId = None
         activity.conversation = None
-        activity.fromAccount = None
-        activity.recipient = None
 
         response_json = {
             'bot': activity.fromAccount if activity.bot is None else activity.bot,
