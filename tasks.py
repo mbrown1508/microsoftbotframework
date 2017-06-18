@@ -29,9 +29,8 @@ def echo_response_async(message):
             personal_message(message, response_text)
         else:
 
-            message_response = message["text"]
             response_info = ReplyToActivity(fill=message,
-                                            text=message_response).send()
+                                            text=message["text"]).send()
 
             sleep(5)
 
@@ -40,6 +39,8 @@ def echo_response_async(message):
                            activityId=response_info.json()['id']).send()
 
             sleep(2)
+
+            personal_message(message, message['text'])
 
 
 def personal_message(message, response_text):

@@ -35,7 +35,7 @@ The send() method is called at the end to post the message to the service.
 
 ```python
 send_to_conversation = SendToConversation(fill=message,
-                                          conversation={'id': 'jg3alifjua8sdljn9abiuao4ihbimroivb'},
+                                          conversationId='jg3alifjua8sdljn9abiuao4ihbimroivb',
                                           text='How are you today?').send()
 ```
 
