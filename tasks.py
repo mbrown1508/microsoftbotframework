@@ -1,6 +1,7 @@
-from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation
+from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
 import celery
 from time import sleep
+import re
 
 
 def respond_to_conversation_update(message):
@@ -20,31 +21,43 @@ def echo_response(message):
 @celery.task()
 def echo_response_async(message):
     if message["type"] == "message":
-        message_response = message["text"]
-        response_info = ReplyToActivity(fill=message,
-                                        text=message_response).send()
+        if re.search("Get Members", message['text']):
+            conversation_response = GetConversationMembers(fill=message).send()
+            activity_response = GetActivityMembers(fill=message).send()
 
-        sleep(5)
+            response_text = 'Conversation: {}; Activity: {}'.format(conversation_response.text, activity_response.text)
+            personal_message(message, response_text)
+        else:
 
-        # This activity doesn't seem to work in most chat applications.
-        DeleteActivity(fill=message,
-                       activityId=response_info.json()['id']).send()
+            message_response = message["text"]
+            response_info = ReplyToActivity(fill=message,
+                                            text=message_response).send()
 
-        sleep(2)
+            sleep(5)
 
-        # The activity passed in the create conversation seems to have no effect.
-        # This also triggers a conversation update. May want to check if your bot is the one joining the conversation.
-        response_info = CreateConversation(fill=message,
-                                           topicName='Starting a conversation',
-                                           text='Lets have a conversation').send()
+            # This activity doesn't seem to work in most chat applications.
+            DeleteActivity(fill=message,
+                           activityId=response_info.json()['id']).send()
 
-        send_to_conversation = SendToConversation(fill=message,
-                                                  conversation={'id': response_info.json()['id']},
-                                                  text=message_response)
+            sleep(2)
 
-        # make sure that we remove and team or channel data from the request when working in teams.
-        # If the bot is only designed to work in teams this could be passed in the arguments to SendToConversation
-        if send_to_conversation.channelData is not None and 'tenant' in send_to_conversation.channelData:
-            send_to_conversation.channelData = {"tenant": {"id": send_to_conversation.channelData["tenant"]["id"]}}
 
-        send_to_conversation.send()
+def personal_message(message, response_text):
+    # The activity passed in the create conversation seems to have no effect.
+    # This also triggers a conversation update. May want to check if your bot is the one joining the conversation.
+    response_info = CreateConversation(fill=message,
+                                       text=response_text).send()
+
+    send_to_conversation = SendToConversation(fill=message,
+                                              conversation={'id': response_info.json()['id']},
+                                              text=response_text)
+
+    # make sure that we remove and team or channel data from the request when working in teams.
+    # If the bot is only designed to work in teams this could be passed in the arguments to SendToConversation
+    if send_to_conversation.channelData is not None and 'tenant' in send_to_conversation.channelData:
+        send_to_conversation.channelData = {"tenant": {"id": send_to_conversation.channelData["tenant"]["id"]}}
+
+    send_to_conversation.send()
+
+
+

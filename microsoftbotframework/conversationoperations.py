@@ -40,7 +40,6 @@ class DeleteActivity(Activity):
         return self._request(response_url, requests.delete)
 
 
-
 class CreateConversation(Activity):
     def __init__(self, **kwargs):
         super(CreateConversation, self).__init__(**kwargs)
@@ -69,3 +68,28 @@ class CreateConversation(Activity):
         response_url = self.urljoin(self.serviceUrl, "/v3/conversations")
 
         return self._request(response_url, requests.post, response_json)
+
+
+class GetConversationMembers(Activity):
+    def __init__(self, **kwargs):
+        super(GetConversationMembers, self).__init__(**kwargs)
+
+    def send(self):
+        response_url = self.urljoin(self.serviceUrl,
+                                    "/v3/conversations/{}/".format(
+                                    self.conversation['id']))
+
+        return self._request(response_url, requests.get)
+
+
+class GetActivityMembers(Activity):
+    def __init__(self, **kwargs):
+        super(GetActivityMembers, self).__init__(**kwargs)
+
+    def send(self):
+        response_url = self.urljoin(self.serviceUrl,
+                                    "/v3/conversations/{}/activities/{}/members".format(
+                                    self.conversation['id'],
+                                    self.activityId))
+
+        return self._request(response_url, requests.get)
