@@ -1,8 +1,9 @@
 import re
+import datetime
 
 
 class Activity:
-    def __init__(self, fill=None, flip=True, **kwargs):
+    def __init__(self, fill=None, flip=True, reply_to_activity=False, **kwargs):
         self.defaults = {
             'action': None,
             'attachments': None,          # Attachment[]
@@ -45,11 +46,14 @@ class Activity:
             setattr(self, prop, kwargs.get(prop, default))
 
         if fill is not None:
-            self.fill(fill)
+            self.fill(fill, reply_to_activity)
 
         # Clean up the conversationId if Microsoft has added messageid to it. (bug?)
-        if re.search(';', self.conversation['id']):
-            self.conversation['id'] = re.match('[^;]+', self.conversation['id']).group()
+        #if re.search(';', self.conversation['id']):
+        #    self.conversation['id'] = re.match('[^;]+', self.conversation['id']).group()
+
+        # Create timestamp
+        self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 
         if flip:
             self.flip()
@@ -59,7 +63,7 @@ class Activity:
         self.recipient = self.fromAccount
         self.fromAccount = recipient
 
-    def fill(self, message):
+    def fill(self, message, reply_to_activity=False):
         skip = ['timestamp', 'localTimestamp', 'entities', 'text', 'id', 'membersAdded', 'membersRemoved', 'attachments']
         for key, value in message.items():
             if key == 'from':
@@ -73,6 +77,10 @@ class Activity:
                     setattr(self, key, value)
             elif key == 'id':
                 self.activityId = value
+
+        if reply_to_activity:
+            self.replyToId = message['id']
+
 
     def to_dict(self):
         json = {}

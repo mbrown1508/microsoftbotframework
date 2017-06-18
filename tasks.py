@@ -16,7 +16,8 @@ def echo_response(message):
         response = Response()
         message_response = message["text"]
         response.reply_to_activity(Activity(fill=message,
-                                                            text=message_response))
+                                            text=message_response,
+                                            reply_to_activity=True))
 
 
 
@@ -28,7 +29,8 @@ def echo_response_async(message):
         response = Response()
         message_response = message["text"]
         response_info = response.reply_to_activity(Activity(fill=message,
-                                            text=message_response))
+                                            text=message_response,
+                                            reply_to_activity=True))
 
         from time import sleep
 
