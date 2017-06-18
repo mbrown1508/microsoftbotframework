@@ -174,6 +174,10 @@ class Response:
         return self._request(response_url, requests.delete)
 
     def create_conversation(self, activity):
+        # make sure that we remove and team or channel data from the request when working in teams.
+        if activity.channelData is not None:
+            activity.channelData = {"tenant": activity.channelData["tenant"]}
+
         response_json = {
             'bot': activity.fromAccount if activity.bot is None else activity.bot,
             'isGroup': False if activity.isGroup is None else activity.isGroup,
