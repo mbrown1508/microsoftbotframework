@@ -51,10 +51,6 @@ class Activity(Response):
         if fill is not None:
             self.fill(fill, reply_to_activity)
 
-        # Clean up the conversationId if Microsoft has added messageid to it. (bug?)
-        #if re.search(';', self.conversation['id']):
-        #    self.conversation['id'] = re.match('[^;]+', self.conversation['id']).group()
-
         # Create timestamp
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 

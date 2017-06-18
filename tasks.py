@@ -1,4 +1,4 @@
-from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
+from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers, UploadAttachmentToChannel
 import celery
 from time import sleep
 import re
@@ -27,6 +27,14 @@ def echo_response_async(message):
 
             response_text = 'Conversation: {}; Activity: {}'.format(conversation_response.text, activity_response.text)
             personal_message(message, response_text)
+
+        elif re.search("cat", message['text']):
+            UploadAttachmentToChannel(
+                fill=message,
+                upload_filename='cute cat.jpg',
+                upload_file_path='/home/skippy/Desktop/cute cat.jpg',
+                upload_type='image/jpeg',
+            ).send()
         else:
 
             response_info = ReplyToActivity(fill=message,
