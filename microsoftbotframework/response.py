@@ -95,8 +95,10 @@ class Response:
     def _get_redis_auth_token(self):
         self.redis = redis.StrictRedis.from_url(self.redis_uri)
         for name, value in self.redis_config.items():
-            if name != 'uri':
+            try:
                 self.redis.config_set(name, value)
+            except:
+                logger.warning('{} is not a valid redis config setting and was skipped.'.format(name))
         token_type = self.redis.get("token_type")
         access_token = self.redis.get("access_token")
         token_expires_at = self.redis.get("token_expires_at")
