@@ -154,8 +154,10 @@ class MsBot:
     def _get_redis_certificates(self):
         self.redis = redis.StrictRedis.from_url(self.redis_uri)
         for name, value in self.redis_config.items():
-            if name != 'uri':
+            try:
                 self.redis.config_set(name, value)
+            except:
+                self.app.logger.warning('{} is not a valid redis config setting and was skipped.'.format(name))
 
         valid_certificates = self.redis.get("valid_certificates")
         certificates_expire_at = self.redis.get("certificates_expire_at")
