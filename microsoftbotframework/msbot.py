@@ -157,7 +157,7 @@ class MsBot:
             try:
                 self.redis.config_set(name, value)
             except:
-                self.app.logger.warning('{} is not a valid redis config setting and was skipped.'.format(name))
+                self.app.logger.info('{} is not a valid redis config setting and was skipped.'.format(name))
 
         valid_certificates = self.redis.get("valid_certificates")
         certificates_expire_at = self.redis.get("certificates_expire_at")

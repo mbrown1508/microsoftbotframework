@@ -98,7 +98,7 @@ class Response:
             try:
                 self.redis.config_set(name, value)
             except:
-                logger.warning('{} is not a valid redis config setting and was skipped.'.format(name))
+                logger.info('{} is not a valid redis config setting and was skipped.'.format(name))
         token_type = self.redis.get("token_type")
         access_token = self.redis.get("access_token")
         token_expires_at = self.redis.get("token_expires_at")
