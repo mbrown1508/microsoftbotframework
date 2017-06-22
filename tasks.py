@@ -27,6 +27,14 @@ def echo_response_async(message):
 
             response_text = 'Conversation: {}; Activity: {}'.format(conversation_response.text, activity_response.text)
             personal_message(message, response_text)
+        if re.search("cat", message['text']):
+            contentUrl = 'https://imgflip.com/s/meme/Cute-Cat.jpg'
+            ReplyToActivity(fill=message,
+                            attachments=[{
+                                'contentType': 'image/jpeg',
+                                'contentUrl': contentUrl,
+                                'name': 'cute cat.jpg',
+                            }]).send()
         else:
 
             response_info = ReplyToActivity(fill=message,
@@ -59,6 +67,3 @@ def personal_message(message, response_text):
         send_to_conversation.channelData = {"tenant": {"id": send_to_conversation.channelData["tenant"]["id"]}}
 
     send_to_conversation.send()
-
-
-

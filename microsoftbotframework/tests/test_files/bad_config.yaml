@@ -1,0 +1,5 @@
+celery:
+    broker_pool_limit: None
+other: bad format
+    app_client_id: <Microsoft App ID>
+    app_client_secret: <Microsoft App Secret>

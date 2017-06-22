@@ -13,11 +13,12 @@ except ImportError:
     pass
 
 class MsBot:
-    def __init__(self, host=None, port=None, debug=None, app_client_id=None, redis_uri=None, verify_jwt_signature=None):
+    def __init__(self, host=None, port=None, debug=None, app_client_id=None, redis_uri=None, verify_jwt_signature=None,
+                 config_location=None):
         self.app = Flask(__name__)
 
         self.processes = []
-        config = Config()
+        config = Config(config_location=config_location)
         self.host = config.get_config(host, 'HOST', root='flask')
         self.port = config.get_config(port, 'PORT', root='flask')
         self.debug = config.get_config(debug, 'DEBUG', root='flask')

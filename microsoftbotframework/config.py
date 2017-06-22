@@ -4,67 +4,91 @@ import logging
 
 
 class Config:
-    def __init__(self):
-        yaml_config = self.get_yaml_config()
-        config = self.replace_missing_values_with_default(yaml_config)
-        self.config = self.check_for_global_vars(config)
-        self.parse_config_values()
+    def __init__(self, config_location=None):
+        self.logger = logging.getLogger(__name__)
+
+        default_config = self._get_default_config()
+        yaml_config = self._get_yaml_config(config_location)
+        environment_vars = os.environ
+
+        config = self._replace_with_yaml_config(default_config, yaml_config)
+        self.config = self._replace_with_environment_vars(config, environment_vars)
+
+        self._parse_config_values()
 
     @staticmethod
-    def get_yaml_config():
+    def _get_default_config():
+        return {'other': {
+                    'auth': True,
+                    'verify_jwt_signature': True,
+                    'app_client_id': None,
+                    'app_client_secret': None,
+                    'http_proxy': None,
+                    'https_proxy': None,
+                }, 'celery': {
+                    'broker_url': None,
+                }, 'flask': {
+                    'host': '0.0.0.0',
+                    'port': '5000',
+                    'debug': False,
+                }, 'redis': {
+                    'uri': None,
+                }}
+
+    def _get_yaml_config(self, config_location):
+        if config_location is not None:
+            self.config_location = config_location
+        else:
+            self.config_location = '{}/config.yaml'.format(os.getcwd())
+
         try:
-            with open('{}/config.yaml'.format(os.getcwd()), 'r') as stream:
+            with open(self.config_location, 'r') as stream:
                 try:
-                    return yaml.load(stream)
+                    yaml_config = yaml.load(stream)
+                    for root, values in yaml_config.items():
+                        try:
+                            values.keys()
+                        except:
+                            raise (Exception('All config values have to be in a parent value. \
+                                            Default values are [\'flask\', \'celery\', \'redis\', \'other\']'))
+                    return yaml_config
                 except yaml.YAMLError:
-                    return {'error': {}}
+                    raise(Exception('There was a error parsing the config.yaml YAML file.'))
         except FileNotFoundError:
-            return {'error': {}}
+            self.logger.warning('There was no YAML file found. \
+                                 If you have a config.yaml file make sure it is in the working directory and try again.')
+            return {}
 
-    @staticmethod
-    def replace_missing_values_with_default(yaml_config):
-        default_config =    {'other': {
-                                'auth': True,
-                                'verify_jwt_signature': True,
-                                'app_client_id': None,
-                                'app_client_secret': None,
-                                'http_proxy': None,
-                                'https_proxy': None,
-                            }, 'celery': {
-                                'broker_url': None,
-                            }, 'flask': {
-                                'host': '0.0.0.0',
-                                'port': '5000',
-                                'debug': False,
-                            },
-                                'redis': {
-                                    'uri': None,
-                            }}
-
-        logger = logging.getLogger(__name__)
-
+    def _replace_with_yaml_config(self, default_config, yaml_config):
         for root, values in yaml_config.items():
             if root not in default_config:
                 default_config[root] = {}
             for sub in values.keys():
                 default_config[root][sub] = yaml_config[root][sub]
-                logger.info('{}:{} loaded from yaml config'.format(root, sub))
+                self.logger.info('{}:{} loaded from yaml config'.format(root, sub))
 
         return default_config
 
-    @staticmethod
-    def check_for_global_vars(config):
-        logger = logging.getLogger(__name__)
-
+    def _replace_with_environment_vars(self, config, environment_vars):
         for root, values in config.items():
             for sub in values.keys():
                 if root == 'other':
                     env_key = sub.upper()
                 else:
                     env_key = '{}_{}'.format(root, sub).upper()
-                if env_key in os.environ:
-                    config[root][sub] = os.environ[env_key]
-                    logger.info('{}:{} loaded from global vars'.format(root, sub))
+                if env_key in environment_vars:
+                    config[root][sub] = environment_vars[env_key]
+                    self.logger.info('{}:{} loaded from global vars'.format(root, sub))
+
+        sutable_fields = ['OTHER', 'FLASK', 'CELERY', 'REDIS']
+        for env_key in environment_vars:
+            split_key = env_key.split('_')
+            if split_key[0] in sutable_fields:
+                if split_key[0].lower() not in config:
+                    config[split_key[0].lower()] = {}
+
+                config[split_key[0].lower()]['_'.join(split_key[1:]).lower()] = environment_vars[env_key]
+
         return config
 
     def get_config(self, argument, config_name, root=None):
@@ -87,7 +111,7 @@ class Config:
     def get_section_config(self, section):
         return self.config[section]
 
-    def parse_config_values(self):
+    def _parse_config_values(self):
         for root, values in self.config.items():
             for sub, value in values.items():
                 if value == 'None':

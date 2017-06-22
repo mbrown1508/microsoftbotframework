@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 
 class Response:
     def __init__(self, **kwargs):
-        config = Config()
+        config_location = kwargs.pop('config_location', None)
+        config = Config(config_location)
+
         self.auth = config.get_config(kwargs.pop('auth', True), 'AUTH')
         self.app_client_id = config.get_config(kwargs.pop('app_client_id', None), 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(kwargs.pop('app_client_secret', None), 'APP_CLIENT_SECRET')
