@@ -33,6 +33,10 @@ class Config:
                     'debug': False,
                 }, 'redis': {
                     'uri': None,
+                }, 'mongodb': {
+                    'uri': None,
+                    'database': 'microsoftbotframework',
+                    'collection': 'state',
                 }}
 
     def _get_yaml_config(self, config_location):

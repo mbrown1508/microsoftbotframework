@@ -58,4 +58,8 @@ class State(object):
     def delete_state_for_user(self, channel_id=None, user_id=None):
         raise (Exception('This object does not have a delete_state_for_user method'))
 
-
+    @staticmethod
+    def _fill(fill, bot):
+        if fill is not None:
+            user_id = fill['recipient']['id'] if bot else fill['fromAccount']['id']
+            return fill['channelId'], fill['conversation']['id'], user_id
