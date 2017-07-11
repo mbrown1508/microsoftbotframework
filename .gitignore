@@ -55,4 +55,5 @@ crashlytics-build.properties
 /dist/
 *.pyc
 /notes.txt
-/memory.json
+/state.json
+/cache.json

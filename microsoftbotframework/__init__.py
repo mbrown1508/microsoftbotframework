@@ -3,4 +3,5 @@ from .msbot import MsBot
 from .config import Config
 from .activity import Activity
 from .conversationoperations import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
-from .memory import JsonMemory, RedisMemory
+from .cache import JsonCache, RedisCache
+from .state import JsonState
