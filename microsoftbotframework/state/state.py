@@ -5,21 +5,21 @@ class State(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def set_user_data_on_channel(self, key, value, channel=None, user_id=None, bot=False, fill=None):
+    def set_user_data_on_channel(self, values, channel=None, user_id=None, bot=False, fill=None):
         pass
 
     @abstractmethod
-    def set_conversation_data_on_channel(self, key, value, channel=None, conversation_id=None, bot=False, fill=None):
+    def set_conversation_data_on_channel(self, values, channel=None, conversation_id=None, bot=False, fill=None):
         pass
 
     @abstractmethod
-    def set_private_conversation_data_on_channel(self, key, value, channel=None, user_id=None, conversation_id=None, bot=False, fill=None):
+    def set_private_conversation_data_on_channel(self, values, channel=None, user_id=None, conversation_id=None, bot=False, fill=None):
         pass
 
-    def set_user_data(self, key, value, user_id=None, bot=False, fill=None):
+    def set_user_data(self, values, user_id=None, bot=False, fill=None):
         raise(Exception('This object does not have a set_user_data method'))
 
-    def set_channel_data(self, key, value, channel_id=None, fill=None):
+    def set_channel_data(self, values, channel_id=None, fill=None):
         raise(Exception('This object does not have a set_channel_data method'))
 
     @abstractmethod
