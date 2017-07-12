@@ -6,28 +6,36 @@ import re
 
 def respond_to_conversation_update(message):
     if message["type"] == "conversationUpdate":
-        message_response = 'Have fun with the Microsoft Bot Framework'
-        ReplyToActivity(fill=message,
-                        text=message_response).send()
+        for member in message['membersAdded']:
+            message_response = 'Conversation Update: Added person was {}'.format(member['name'])
+            ReplyToActivity(fill=message,
+                            text=message_response).send()
+
+        if len(message['membersAdded']) == 0:
+            message_response = 'Conversation Update: No members added'
+            ReplyToActivity(fill=message,
+                            text=message_response).send()
 
 
-def echo_response(message):
+def synchronous_response(message):
     if message["type"] == "message":
-        ReplyToActivity(fill=message,
-                        text=message["text"]).send()
+        if 'synchronous' in message["text"] and 'asynchronous' not in message['text']:
+            ReplyToActivity(fill=message,
+                            text='Synchronous Test: {}'.format(message["text"])).send()
 
 
 # This is a asynchronous task
 @celery.task()
-def echo_response_async(message):
+def asynchronous_response(message):
     if message["type"] == "message":
-        if re.search("Get Members", message['text']):
+        if "members" in message['text']:
             conversation_response = GetConversationMembers(fill=message).send()
             activity_response = GetActivityMembers(fill=message).send()
 
             response_text = 'Conversation: {}; Activity: {}'.format(conversation_response.text, activity_response.text)
             personal_message(message, response_text)
-        if re.search("cat", message['text']):
+
+        elif "image" in message['text']:
             contentUrl = 'https://imgflip.com/s/meme/Cute-Cat.jpg'
             ReplyToActivity(fill=message,
                             attachments=[{
@@ -35,20 +43,26 @@ def echo_response_async(message):
                                 'contentUrl': contentUrl,
                                 'name': 'cute cat.jpg',
                             }]).send()
-        else:
 
+        elif "asynchronous" in message['text']:
+            ReplyToActivity(fill=message,
+                            text='Asynchronous Test: {}'.format(message["text"])).send()
+
+        elif 'delete' in message['text']:
             response_info = ReplyToActivity(fill=message,
-                                            text=message["text"]).send()
+                                            text='Delete Test: {}'.format(message["text"])).send()
 
             sleep(5)
 
-            # This activity doesn't seem to work in most chat applications.
             DeleteActivity(fill=message,
                            activityId=response_info.json()['id']).send()
 
-            sleep(2)
-
+        elif 'personal' in message['text']:
             personal_message(message, message['text'])
+
+        else:
+            ReplyToActivity(fill=message,
+                            text='Nothing was queried').send()
 
 
 def personal_message(message, response_text):
