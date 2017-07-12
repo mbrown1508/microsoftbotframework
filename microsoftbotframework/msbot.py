@@ -1,9 +1,9 @@
 from flask import Flask, request
 from celery.local import PromiseProxy
-from . import JsonCache, RedisCache, Config
+from .config import Config
+from .cache import RedisCache, JsonCache
 import requests
 import json
-import redis
 import datetime
 
 try:
@@ -15,7 +15,7 @@ except ImportError:
 
 class MsBot:
     def __init__(self, host=None, port=None, debug=None, app_client_id=None, verify_jwt_signature=None,
-                 config_location=None, cache='JsonCache'):
+                 config_location=None, cache=None):
         self.app = Flask(__name__)
 
         self.processes = []
@@ -24,6 +24,8 @@ class MsBot:
         self.port = config.get_config(port, 'PORT', root='flask')
         self.debug = config.get_config(debug, 'DEBUG', root='flask')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
+
+        cache_arg = config.get_config(cache, 'cache')
 
         self.cache_certs = True
         try:
@@ -35,12 +37,12 @@ class MsBot:
             self.cache_certs = False
             self.app.logger.info('The jwt library\s has not been installed. Disabling certificate caching.')
 
-        if cache is None and self.verify_jwt_signature:
+        if cache_arg is None and self.verify_jwt_signature:
             self.app.logger.info('A cache object has not been set. Disabling certificate caching.')
             self.cache_certs = False
 
         if self.cache_certs and self.verify_jwt_signature:
-            self.cache = self.get_cache(cache, config)
+            self.cache = self.get_cache(cache_arg, config)
 
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():

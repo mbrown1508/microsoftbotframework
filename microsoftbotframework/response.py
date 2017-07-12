@@ -1,4 +1,5 @@
-from . import Config, RedisCache, JsonCache
+from .config import Config
+from .cache import RedisCache, JsonCache
 import requests
 import datetime
 import logging
@@ -18,7 +19,7 @@ class Response:
         self.http_proxy = config.get_config(kwargs.pop('http_proxy', None), 'HTTP_PROXY')
         self.https_proxy = config.get_config(kwargs.pop('https_proxy', None), 'HTTPS_PROXY')
 
-        cache_arg = kwargs.pop('cache', 'JsonCache')
+        cache_arg = config.get_config(kwargs.pop('cache', None), 'cache')
 
         if self.app_client_id is None:
             logger.info('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')

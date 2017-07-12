@@ -25,6 +25,8 @@ class Config:
                     'app_client_secret': None,
                     'http_proxy': None,
                     'https_proxy': None,
+                    'cache': 'JsonCache',
+                    'state': 'JsonState',
                 }, 'celery': {
                     'broker_url': None,
                 }, 'flask': {
