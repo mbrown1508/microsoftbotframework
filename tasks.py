@@ -57,7 +57,7 @@ def asynchronous_response(message):
                            activityId=response_info.json()['id']).send()
 
         elif 'personal' in message['text']:
-            personal_message(message, message['text'])
+            personal_message(message, 'Personal Message: {}'.format(message['text']))
 
         elif 'synchronous' not in message["text"]:
             ReplyToActivity(fill=message,
