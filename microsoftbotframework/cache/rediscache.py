@@ -1,7 +1,7 @@
 from .cache import Cache
 
 try:
-    from pymongo import redis
+    import redis
 except ImportError:
     pass
 
