@@ -1,7 +1,8 @@
 from flask import Flask, request
 from celery.local import PromiseProxy
 from .config import Config
-from .cache import RedisCache, JsonCache
+from .cache.rediscache import RedisCache
+from .cache.jsoncache import JsonCache
 import requests
 import json
 import datetime
