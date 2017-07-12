@@ -39,9 +39,9 @@ class Activity(Response):
         self.activityId = None
 
         # Used in create Conversation - not is not required and will default to from
-        self.isGroup = setattr(self, 'isGroup', kwargs.get('isGroup', False))
-        self.members = setattr(self, 'members', kwargs.get('members', None))
-        self.bot = setattr(self, 'bot', kwargs.get('bot', None))
+        self.isGroup = kwargs.get('isGroup', False)
+        self.members = kwargs.get('members', None)
+        self.bot = kwargs.get('bot', None)
 
         for (prop, default) in self.defaults.items():
             setattr(self, prop, kwargs.pop(prop, default))
