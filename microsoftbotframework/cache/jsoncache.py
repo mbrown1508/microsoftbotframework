@@ -40,6 +40,9 @@ class JsonCache(Cache):
         with open(self.data_location, 'r+') as data_file:
             data = json.load(data_file)
 
+            if key not in data:
+                return False
+
             data.pop(key, None)
 
             data_file.seek(0)

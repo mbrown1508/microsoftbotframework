@@ -18,11 +18,21 @@ class RedisCache(Cache):
 
     def set(self, key, value):
         self._connect()
-        self.redis.set(key, value)
+        result = self.redis.set(key, value)
+
+        if result > 0:
+            return True
+        else:
+            return False
 
     def delete(self, key):
         self._connect()
-        self.redis.delete(key)
+        result = self.redis.delete(key)
+
+        if result > 0:
+            return True
+        else:
+            return False
 
     def _connect(self):
         if self.redis is None:

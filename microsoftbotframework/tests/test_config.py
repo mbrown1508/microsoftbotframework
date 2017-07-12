@@ -10,7 +10,8 @@ class ConfigTestCase(TestCase):
     def test_default_load(self):
         default_values = {'other': {'https_proxy': None, 'http_proxy': None, 'auth': True, 'verify_jwt_signature': True,
                                     'app_client_id': None, 'app_client_secret': None}, 'redis': {'uri': None},
-                          'flask': {'host': '0.0.0.0', 'debug': False, 'port': '5000'}, 'celery': {'broker_url': None}}
+                          'flask': {'host': '0.0.0.0', 'debug': False, 'port': '5000'}, 'celery': {'broker_url': None},
+                          'mongodb': {'uri': None, 'database': 'microsoftbotframework', 'collection': 'state'}}
         self.assertEqual(self.config._get_default_config(), default_values)
 
     # Test yaml

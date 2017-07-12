@@ -1,0 +1,2 @@
+redis:
+    uri: redis://localhost:6379
