@@ -1,5 +1,5 @@
 from unittest import TestCase
-from microsoftbotframework import Config
+from ..config import Config
 import os
 
 class ConfigTestCase(TestCase):

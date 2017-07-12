@@ -1,4 +1,4 @@
-from . import Activity
+from .activity import Activity
 import requests
 
 

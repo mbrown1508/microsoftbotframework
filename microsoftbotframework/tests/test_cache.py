@@ -1,5 +1,6 @@
 from unittest import TestCase
-from microsoftbotframework import JsonCache, RedisCache, Config
+from ..config import Config
+from ..cache import JsonCache, RedisCache
 import os
 
 

@@ -1,10 +1,11 @@
-from .config import Config
-from .cache.rediscache import RedisCache
-from .cache.jsoncache import JsonCache
-import requests
 import datetime
-import logging
 import json
+import logging
+
+import requests
+
+from .cache import JsonCache, RedisCache
+from .config import Config
 
 logger = logging.getLogger(__name__)
 

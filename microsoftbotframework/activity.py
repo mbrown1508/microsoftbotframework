@@ -1,6 +1,5 @@
-import re
 import datetime
-from . import Response
+from .response import Response
 
 
 class Activity(Response):
