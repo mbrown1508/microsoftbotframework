@@ -1,5 +1,9 @@
 from .state import State
-from pymongo import MongoClient
+
+try:
+    from pymongo import MongoClient
+except ImportError:
+    pass
 
 
 class MongodbState(State):

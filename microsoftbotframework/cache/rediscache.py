@@ -1,5 +1,9 @@
-import redis
 from .cache import Cache
+
+try:
+    from pymongo import redis
+except ImportError:
+    pass
 
 
 class RedisCache(Cache):
