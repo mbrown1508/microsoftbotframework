@@ -37,7 +37,7 @@ class MsBot:
             self.cache_certs = False
             self.app.logger.info('The jwt library\s has not been installed. Disabling certificate caching.')
 
-        if cache_arg is None and self.verify_jwt_signature:
+        if (cache_arg is None or not cache_arg) and self.verify_jwt_signature:
             self.app.logger.info('A cache object has not been set. Disabling certificate caching.')
             self.cache_certs = False
 
@@ -78,7 +78,7 @@ class MsBot:
             elif cache == 'RedisCache':
                 return RedisCache(config)
             else:
-                raise(Exception('Invalid cache option specified.'))
+                raise(Exception('Invalid string cache option specified.'))
         else:
             return cache
 

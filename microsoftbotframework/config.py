@@ -56,7 +56,7 @@ class Config:
                             values.keys()
                         except:
                             raise (Exception('All config values have to be in a parent value. \
-                                            Default values are [\'flask\', \'celery\', \'redis\', \'other\']'))
+                                            Default values are [\'mongodb\', \'flask\', \'celery\', \'redis\', \'other\']'))
                     return yaml_config
                 except yaml.YAMLError:
                     raise(Exception('There was a error parsing the config.yaml YAML file.'))

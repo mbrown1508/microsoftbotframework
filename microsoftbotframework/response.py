@@ -30,7 +30,7 @@ class Response:
 
         self.cache_token = True
         if self.auth:
-            if cache_arg is None:
+            if cache_arg is None or not cache_arg:
                 logger.info('A cache object has not been set. Disabling token caching.')
                 self.cache_token = False
                 self.cache = None

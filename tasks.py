@@ -1,7 +1,6 @@
 from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
 import celery
 from time import sleep
-import re
 
 
 def respond_to_conversation_update(message):
@@ -60,7 +59,7 @@ def asynchronous_response(message):
         elif 'personal' in message['text']:
             personal_message(message, message['text'])
 
-        else:
+        elif 'synchronous' not in message["text"]:
             ReplyToActivity(fill=message,
                             text='Nothing was queried').send()
 
