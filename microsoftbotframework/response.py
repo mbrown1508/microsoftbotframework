@@ -1,11 +1,11 @@
-from .config import Config
+from . import Config, RedisCache, JsonCache
 import requests
 import datetime
-import redis
 import logging
 import json
 
 logger = logging.getLogger(__name__)
+
 
 class Response:
     def __init__(self, **kwargs):
@@ -15,9 +15,10 @@ class Response:
         self.auth = config.get_config(kwargs.pop('auth', True), 'AUTH')
         self.app_client_id = config.get_config(kwargs.pop('app_client_id', None), 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(kwargs.pop('app_client_secret', None), 'APP_CLIENT_SECRET')
-        self.redis_uri = config.get_config(kwargs.pop('redis_uri', None), 'URI', root='redis')
         self.http_proxy = config.get_config(kwargs.pop('http_proxy', None), 'HTTP_PROXY')
         self.https_proxy = config.get_config(kwargs.pop('https_proxy', None), 'HTTPS_PROXY')
+
+        cache_arg = kwargs.pop('cache', 'JsonCache')
 
         if self.app_client_id is None:
             logger.info('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')
@@ -28,15 +29,28 @@ class Response:
 
         self.cache_token = True
         if self.auth:
-            if self.redis_uri is None:
-                logger.info('The \'REDIS_URI_TOKEN_STORE\' has not been set. Disabling token caching.')
+            if cache_arg is None:
+                logger.info('A cache object has not been set. Disabling token caching.')
                 self.cache_token = False
+                self.cache = None
+            else:
+                self.cache = self.get_cache(cache_arg, config)
 
         self.data = {}
         self.headers = None
         self.token = None
-        self.redis = None
-        self.redis_config = config.get_section_config('redis')
+
+    @staticmethod
+    def get_cache(cache, config):
+        if isinstance(cache, str):
+            if cache == 'JsonCache':
+                return JsonCache()
+            elif cache == 'RedisCache':
+                return RedisCache(config)
+            else:
+                raise(Exception('Invalid string cache option specified.'))
+        else:
+            return cache
 
     def __getitem__(self, key):
         try:
@@ -82,9 +96,9 @@ class Response:
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(seconds=(int(expires_in) - 60))
         expires_at_string = expires_at.strftime('%Y-%m-%dT%H:%M:%S')
 
-        self.redis.set("token_type", token_type)
-        self.redis.set("access_token", access_token)
-        self.redis.set("token_expires_at", expires_at_string)
+        self.cache.set("token_type", token_type)
+        self.cache.set("access_token", access_token)
+        self.cache.set("token_expires_at", expires_at_string)
 
         logger.info('Auth token stored')
 
@@ -93,25 +107,19 @@ class Response:
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
     def _get_redis_auth_token(self):
-        self.redis = redis.StrictRedis.from_url(self.redis_uri)
-        for name, value in self.redis_config.items():
-            try:
-                self.redis.config_set(name, value)
-            except:
-                logger.info('{} is not a valid redis config setting and was skipped.'.format(name))
-        token_type = self.redis.get("token_type")
-        access_token = self.redis.get("access_token")
-        token_expires_at = self.redis.get("token_expires_at")
+        token_type = self.cache.get("token_type")
+        access_token = self.cache.get("access_token")
+        token_expires_at = self.cache.get("token_expires_at")
 
         if token_type is None or access_token is None or token_expires_at is None or \
-                self._has_token_expired(token_expires_at.decode('UTF-8')):
+                self._has_token_expired(token_expires_at):
             logger.info('Getting remote auth token')
             return self._get_remote_auth_token()
         else:
             logger.info('Got stored auth token')
             return {
-                'token_type': token_type.decode('UTF-8'),
-                'access_token': access_token.decode('UTF-8')
+                'token_type': token_type,
+                'access_token': access_token
             }
 
     def _set_header(self):

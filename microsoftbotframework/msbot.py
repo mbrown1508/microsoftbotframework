@@ -1,6 +1,6 @@
 from flask import Flask, request
 from celery.local import PromiseProxy
-from .config import Config
+from . import JsonCache, RedisCache, Config
 import requests
 import json
 import redis
@@ -12,9 +12,10 @@ try:
 except ImportError:
     pass
 
+
 class MsBot:
-    def __init__(self, host=None, port=None, debug=None, app_client_id=None, redis_uri=None, verify_jwt_signature=None,
-                 config_location=None):
+    def __init__(self, host=None, port=None, debug=None, app_client_id=None, verify_jwt_signature=None,
+                 config_location=None, cache='JsonCache'):
         self.app = Flask(__name__)
 
         self.processes = []
@@ -23,22 +24,23 @@ class MsBot:
         self.port = config.get_config(port, 'PORT', root='flask')
         self.debug = config.get_config(debug, 'DEBUG', root='flask')
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
-        self.redis_uri = config.get_config(redis_uri, 'URI', root='redis')
-        self.redis = None
 
+        self.cache_certs = True
         try:
             from jwt.algorithms import RSAAlgorithm
             import jwt
             self.verify_jwt_signature = config.get_config(verify_jwt_signature, 'VERIFY_JWT_SIGNATURE')
         except ImportError:
             self.verify_jwt_signature = False
+            self.cache_certs = False
+            self.app.logger.info('The jwt library\s has not been installed. Disabling certificate caching.')
 
-        self.cache_certs = True
-        if self.redis_uri is None:
-            self.app.logger.info('The \'REDIS_URI\' has not been set. Disabling certificate caching.')
+        if cache is None and self.verify_jwt_signature:
+            self.app.logger.info('A cache object has not been set. Disabling certificate caching.')
             self.cache_certs = False
 
-        self.redis_config = config.get_section_config('redis')
+        if self.cache_certs and self.verify_jwt_signature:
+            self.cache = self.get_cache(cache, config)
 
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
@@ -65,6 +67,18 @@ class MsBot:
                         self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
                         process(json_message)
                 return "Success"
+
+    @staticmethod
+    def get_cache(cache, config):
+        if isinstance(cache, str):
+            if cache == 'JsonCache':
+                return JsonCache()
+            elif cache == 'RedisCache':
+                return RedisCache(config)
+            else:
+                raise(Exception('Invalid cache option specified.'))
+        else:
+            return cache
 
     def add_process(self, process):
         self.processes.append(process)
@@ -142,8 +156,8 @@ class MsBot:
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=5)
         expires_at_string = expires_at.strftime('%Y-%m-%dT%H:%M:%S')
 
-        self.redis.set("valid_certificates", json.dumps(valid_certificates))
-        self.redis.set("certificates_expire_at", expires_at_string)
+        self.cache.set("valid_certificates", json.dumps(valid_certificates))
+        self.cache.set("certificates_expire_at", expires_at_string)
 
         self.app.logger.info('Certificates stored')
 
@@ -152,20 +166,13 @@ class MsBot:
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
     def _get_redis_certificates(self):
-        self.redis = redis.StrictRedis.from_url(self.redis_uri)
-        for name, value in self.redis_config.items():
-            try:
-                self.redis.config_set(name, value)
-            except:
-                self.app.logger.info('{} is not a valid redis config setting and was skipped.'.format(name))
-
-        valid_certificates = self.redis.get("valid_certificates")
-        certificates_expire_at = self.redis.get("certificates_expire_at")
+        valid_certificates = self.cache.get("valid_certificates")
+        certificates_expire_at = self.cache.get("certificates_expire_at")
 
         if valid_certificates is None or certificates_expire_at is None or \
-                self._has_certificate_expired(certificates_expire_at.decode('UTF-8')):
+                self._has_certificate_expired(certificates_expire_at):
             self.app.logger.info('Getting remote certificates')
             return self._get_remote_certificates()
         else:
             self.app.logger.info('Got stored certificates')
-            return json.loads(valid_certificates.decode('UTF-8'))
+            return json.loads(valid_certificates)
