@@ -3,12 +3,25 @@ There are currently 2 cache adapters available in the library:
 * JsonCache
 * RedisCache
 
+## Installation
+#####JsonCache
+JsonCache equires write preveliges to the working directory or the configured directory.
+
+#####RedisCache 
+RedisCache requires a working redis data store. See the following url for a good guide on installing. https://www.linode.com/docs/databases/redis/deploy-redis-on-ubuntu-or-debian
+
+In addition the redis library is required. It can be installed with the following command.
+
+```text
+pip install redis
+```
+
 ## Using Caching
 The 2 main objects that use caching are the MsBot object which caches the certificates and the ConversationOperation objects who cache the auth token.
 
 By default JsonCache is enabled. This is to reduce the amount of calls to the authorization and certificate endpoints. It is recomended that you don't use JsonCache in production.
 
-They can be configured inline using strings as follows.
+They can be set inline using strings as follows.
 ```python
 bot = MsBot(cache='RedisCache')
 
