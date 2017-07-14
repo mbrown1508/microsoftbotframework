@@ -58,9 +58,14 @@ class Activity(Response):
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 
         # A nicer way to set conversation = {"id": "asdfsdf"}
-        conversationId = kwargs.pop('conversationId', None)
-        if conversationId is not None:
-            self.conversation = {"id": conversationId}
+        self.conversationId = kwargs.pop('conversationId', None)
+        if self.conversationId is not None:
+            self.conversation = {"id": self.conversationId}
+            
+        # Set activityId if passed in args
+        self.activityId = kwargs.pop('activityId', self.activityId)
+        if self.activityId is not None:
+            self.id = self.activityId
 
         flip = kwargs.pop('flip', False if fill is None else True)
         if flip:
@@ -82,15 +87,14 @@ class Activity(Response):
             if key == 'type':
                 if getattr(self, 'type') is None:
                     setattr(self, 'type', 'message')
+            elif key == 'id':
+                self.activityId = value
             elif key not in skip:
                 if getattr(self, key, None) is None:
                     setattr(self, key, value)
-            elif key == 'id':
-                self.activityId = value
 
         if reply_to_activity:
             self.replyToId = message['id']
-
 
     def to_dict(self):
         json = {}
