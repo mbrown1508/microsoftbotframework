@@ -5,6 +5,21 @@ try:
     import redis
 except ImportError:
     pass
+from .config import Config
+
+
+def get_cache(cache, config=None):
+    if isinstance(cache, str):
+        if cache == 'JsonCache':
+            return JsonCache()
+        elif cache == 'RedisCache':
+            if config is None:
+                config = Config()
+            return RedisCache(config)
+        else:
+            raise(Exception('Invalid string cache option specified.'))
+    else:
+        return cache
 
 
 class Cache(object):

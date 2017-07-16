@@ -1,7 +1,7 @@
 from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
 import celery
 from time import sleep
-from microsoftbotframework import JsonState
+from microsoftbotframework import get_state
 
 
 def respond_to_conversation_update(message):
@@ -24,7 +24,7 @@ def synchronous_response(message):
                             text='Synchronous Test: {}'.format(message["text"])).send()
 
         elif 'history' in message['text']:
-            state = JsonState()
+            state = get_state('MongodbState')
             ReplyToActivity(fill=message,
                             text='History: {}'.format(state.get_activities(2))).send()
 

@@ -5,8 +5,8 @@ import requests
 from celery.local import PromiseProxy
 from flask import Flask, request
 
-from .cache import JsonCache, RedisCache
-from .state import JsonState, MongodbState
+from .cache import get_cache
+from .state import get_state
 from .config import Config
 
 try:
@@ -46,10 +46,10 @@ class MsBot:
             self.cache_certs = False
 
         if self.cache_certs and self.verify_jwt_signature:
-            self.cache = self.get_cache(cache_arg, config)
+            self.cache = get_cache(cache_arg, config)
 
         if state_arg is not None:
-            self.state = self.get_state(state_arg, config)
+            self.state = get_state(state_arg, config)
         else:
             self.state = None
 
@@ -80,30 +80,6 @@ class MsBot:
                         self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
                         process(json_message)
                 return "Success"
-
-    @staticmethod
-    def get_cache(cache, config):
-        if isinstance(cache, str):
-            if cache == 'JsonCache':
-                return JsonCache()
-            elif cache == 'RedisCache':
-                return RedisCache(config)
-            else:
-                raise(Exception('Invalid string cache option specified.'))
-        else:
-            return cache
-
-    @staticmethod
-    def get_state(state, config):
-        if isinstance(state, str):
-            if state == 'JsonState':
-                return JsonState()
-            elif state == 'MongodbState':
-                return MongodbState(config)
-            else:
-                raise(Exception('Invalid string state option specified.'))
-        else:
-            return state
 
     def add_process(self, process):
         self.processes.append(process)

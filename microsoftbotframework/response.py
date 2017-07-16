@@ -4,8 +4,8 @@ import logging
 
 import requests
 
-from .cache import JsonCache, RedisCache
-from .state import JsonState, MongodbState
+from .cache import get_cache
+from .state import get_state
 from .config import Config
 
 logger = logging.getLogger(__name__)
@@ -39,40 +39,16 @@ class Response:
                 self.cache_token = False
                 self.cache = None
             else:
-                self.cache = self.get_cache(cache_arg, config)
+                self.cache = get_cache(cache_arg, config)
 
         if state_arg is not None:
-            self.state = self.get_state(state_arg, config)
+            self.state = get_state(state_arg, config)
         else:
             self.state = None
 
         self.data = {}
         self.headers = None
         self.token = None
-
-    @staticmethod
-    def get_cache(cache, config):
-        if isinstance(cache, str):
-            if cache == 'JsonCache':
-                return JsonCache()
-            elif cache == 'RedisCache':
-                return RedisCache(config)
-            else:
-                raise(Exception('Invalid string cache option specified.'))
-        else:
-            return cache
-
-    @staticmethod
-    def get_state(state, config):
-        if isinstance(state, str):
-            if state == 'JsonState':
-                return JsonState()
-            elif state == 'MongodbState':
-                return MongodbState(config)
-            else:
-                raise(Exception('Invalid string state option specified.'))
-        else:
-            return state
 
     def __getitem__(self, key):
         try:

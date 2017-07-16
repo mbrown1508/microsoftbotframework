@@ -5,6 +5,21 @@ except ImportError:
     pass
 import json
 import os
+from .config import Config
+
+
+def get_state(state, config=None):
+    if isinstance(state, str):
+        if state == 'JsonState':
+            return JsonState()
+        elif state == 'MongodbState':
+            if config is None:
+                config = Config()
+            return MongodbState(config)
+        else:
+            raise(Exception('Invalid string state option specified.'))
+    else:
+        return state
 
 
 class State(object):
