@@ -1,5 +1,4 @@
 from .activity import Activity
-import requests
 
 
 class ReplyToActivity(Activity):
@@ -12,7 +11,13 @@ class ReplyToActivity(Activity):
                                     self.conversation['id'],
                                     self.activityId))
 
-        return self._request(response_url, requests.post, self.to_dict())
+        response = self._request(response_url, 'post', self.to_dict())
+
+        self.save_response('replyToActivity',
+                           self.to_dict(),
+                           {'conversationId': self.conversation['id'], 'activityId': self.activityId},
+                           response.json())
+        return response
 
 
 class SendToConversation(Activity):
@@ -24,7 +29,13 @@ class SendToConversation(Activity):
                                     "/v3/conversations/{}/activities".format(
                                         self.conversation['id']))
 
-        return self._request(response_url, requests.post, self.to_dict())
+        response = self._request(response_url, 'post', self.to_dict())
+
+        self.save_response('SendToConversation',
+                           self.to_dict(),
+                           {'conversationId': self.conversation['id']},
+                           response.json())
+        return response
 
 
 class DeleteActivity(Activity):
@@ -37,7 +48,13 @@ class DeleteActivity(Activity):
                                     self.conversation['id'],
                                     self.activityId))
 
-        return self._request(response_url, requests.delete)
+        response = self._request(response_url, 'delete')
+
+        self.save_response('DeleteActivity',
+                           None,
+                           {'conversationId': self.conversation['id'], 'activityId': self.activityId},
+                           response.json())
+        return response
 
 
 class CreateConversation(Activity):
@@ -67,7 +84,13 @@ class CreateConversation(Activity):
 
         response_url = self.urljoin(self.serviceUrl, "/v3/conversations")
 
-        return self._request(response_url, requests.post, response_json)
+        response = self._request(response_url, 'post', response_json)
+
+        self.save_response('CreateConversation',
+                           response_json,
+                           {},
+                           response.json())
+        return response
 
 
 class GetConversationMembers(Activity):
@@ -79,7 +102,13 @@ class GetConversationMembers(Activity):
                                     "/v3/conversations/{}/members".format(
                                     self.conversation['id']))
 
-        return self._request(response_url, requests.get)
+        response = self._request(response_url, 'get')
+
+        self.save_response('GetConversationMembers',
+                           None,
+                           {'conversationId': self.conversation['id']},
+                           response.json())
+        return response
 
 
 class GetActivityMembers(Activity):
@@ -92,4 +121,10 @@ class GetActivityMembers(Activity):
                                     self.conversation['id'],
                                     self.activityId))
 
-        return self._request(response_url, requests.get)
+        response = self._request(response_url, 'get')
+
+        self.save_response('GetActivityMembers',
+                           None,
+                           {'conversationId': self.conversation['id'], 'activityId': self.activityId},
+                           response.json())
+        return response

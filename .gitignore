@@ -57,5 +57,6 @@ crashlytics-build.properties
 /notes.txt
 /state.json
 /cache.json
+/conversation.json
 /build/
 /.eggs/

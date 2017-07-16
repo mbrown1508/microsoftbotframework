@@ -5,6 +5,7 @@ import logging
 import requests
 
 from .cache import JsonCache, RedisCache
+from .state import JsonState, MongodbState
 from .config import Config
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ class Response:
         self.https_proxy = config.get_config(kwargs.pop('https_proxy', None), 'HTTPS_PROXY')
 
         cache_arg = config.get_config(kwargs.pop('cache', None), 'cache')
+        state_arg = config.get_config(kwargs.pop('state', None), 'state')
 
         if self.app_client_id is None:
             logger.info('The \'APP_CLIENT_ID\' has not been set. Disabling authentication.')
@@ -39,6 +41,11 @@ class Response:
             else:
                 self.cache = self.get_cache(cache_arg, config)
 
+        if state_arg is not None:
+            self.state = self.get_state(state_arg, config)
+        else:
+            self.state = None
+
         self.data = {}
         self.headers = None
         self.token = None
@@ -54,6 +61,18 @@ class Response:
                 raise(Exception('Invalid string cache option specified.'))
         else:
             return cache
+
+    @staticmethod
+    def get_state(state, config):
+        if isinstance(state, str):
+            if state == 'JsonState':
+                return JsonState()
+            elif state == 'MongodbState':
+                return MongodbState(config)
+            else:
+                raise(Exception('Invalid string state option specified.'))
+        else:
+            return state
 
     def __getitem__(self, key):
         try:
@@ -137,12 +156,21 @@ class Response:
     def _request(self, response_url, method, response_json=None):
         self._set_header()
 
+        if method == 'get':
+            request_method = requests.get
+        elif method == 'post':
+            request_method = requests.post
+        elif method == 'delete':
+            request_method = requests.delete
+        else:
+            raise(Exception('{} is not a supported method'.format(method)))
+
         logger.info(str(method))
         logger.info('response_url: {}'.format(response_url))
         logger.info('response_headers: {}'.format(json.dumps(self.headers)))
         logger.info('response_json: {}'.format(json.dumps(response_json)))
 
-        post_response = method(response_url, json=response_json, headers=self.headers)
+        post_response = request_method(response_url, json=response_json, headers=self.headers)
 
         if post_response.status_code == 200 or post_response.status_code == 201:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text))
@@ -163,3 +191,12 @@ class Response:
             return url1 + url2[1:]
         else:
             return url1 + '/' + url2
+
+    def save_response(self, type, response_json, url_parameters, response):
+        if self.state is not None:
+            self.state.save_activity({
+                'type': type,
+                'activity': response_json,
+                'url_parameters': url_parameters,
+                'response': response,
+            })

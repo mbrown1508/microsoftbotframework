@@ -56,15 +56,23 @@ def merge_two_dicts(x, y):
 
 class JsonStateTestCase(TestCase):
     def setUp(self):
+        self._remove_files()
+        self.state = JsonState(state_filename='teststate.json', conversation_filename='testconversation.json')
+
+    def tearDown(self):
+        pass
+        self._remove_files()
+
+    def _remove_files(self):
         try:
-            os.remove(os.getcwd() + '/testjsonstate.json')
+            os.remove(os.getcwd() + '/teststate.json')
         except OSError:
             pass
 
-        self.state = JsonState(filename='testjsonstate.json')
-
-    def tearDown(self):
-        os.remove(os.getcwd() + '/testjsonstate.json')
+        try:
+            os.remove(os.getcwd() + '/testconversation.json')
+        except OSError:
+            pass
 
     def test_set_key_1(self):
         self.assertEqual(self.state.set_user_data_on_channel(NAME_VALUES1, channel=CHANNEL1, user_id=USER1),
@@ -603,25 +611,54 @@ class JsonStateTestCase(TestCase):
         self.assertEqual(self.state.set_user_data(AGE_VALUES2, fill=MESSAGE, bot=True), AGE_VALUES2)
         self.assertEqual(self.state.get_user_data(user_id=BOT), AGE_VALUES2)
 
+    def test_add_conversation(self):
+        self.state.save_activity({'activity': 'activity1'})
+        self.assertEqual(self.state.get_activities(), [{'activity': 'activity1', '_id': 1}])
+
+    def test_add_multiple_conversations(self):
+        for n in range(1,15):
+            self.state.save_activity({'activity': 'activity{}'.format(n)})
+
+        self.assertEqual(self.state.get_activities(), [{'activity': 'activity{}'.format(x), '_id': x} for x in range(5, 15)])
+        self.assertEqual(len(self.state.get_activities()), 10)
+
+    def test_add_multiple_conversations_with_argument(self):
+        for n in range(1, 15):
+            self.state.save_activity({'activity': 'activity{}'.format(n)})
+
+        self.assertEqual(self.state.get_activities(count=5), [{'activity': 'activity{}'.format(x), '_id': x} for x in range(10, 15)])
+        self.assertEqual(len(self.state.get_activities(count=5)), 5)
+
+        self.assertEqual(self.state.get_activities(count=15), [{'activity': 'activity{}'.format(x), '_id': x} for x in range(1, 15)])
+        self.assertEqual(len(self.state.get_activities(count=-1)), 14)
+        self.assertEqual(len(self.state.get_activities(count=100)), 14)
+
+    def test_maximum_stored(self):
+        for n in range(1, 60):
+            self.state.save_activity({'activity': 'activity{}'.format(n)})
+
+        self.assertEqual(len(self.state.get_activities(count=-1)), 50)
+
 
 class MongodbStateTestCase(JsonStateTestCase):
     def setUp(self):
         self.config = Config(os.getcwd() + '/microsoftbotframework/tests/test_files/mongodb_test_config.yaml')
-        self._delete_collection()
-        self.state = MongodbState(self.config, collection='testmongodbstate')
+        self._drop_database()
+        self.state = MongodbState(self.config, database='testmongodbstate')
 
     def tearDown(self):
         # remove any name or age values
-        self._delete_collection()
+        self._drop_database()
 
-    def _delete_collection(self):
+    def _drop_database(self):
         # remove collection
         mongodb_uri = self.config.get_config(None, 'URI', root='mongodb')
-        mongodb_database = self.config.get_config(None, 'DATABASE', root='mongodb')
-        mongodb_collection = self.config.get_config('testmongodbstate', 'COLLECTION', root='mongodb')
-
         client = MongoClient(mongodb_uri)
-        db = client[mongodb_database]
-        collection = db[mongodb_collection]
+        client.drop_database('testmongodbstate')
 
-        collection.drop()
+    def test_get_next_id(self):
+        self.assertEqual(self.state._get_last_id(), 0)
+
+        for n in range(1, 6):
+            self.assertEqual(self.state._get_next_id(), n)
+            self.assertEqual(self.state._get_last_id(), n)

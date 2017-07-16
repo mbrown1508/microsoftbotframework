@@ -1,6 +1,7 @@
 from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
 import celery
 from time import sleep
+from microsoftbotframework import JsonState
 
 
 def respond_to_conversation_update(message):
@@ -22,6 +23,11 @@ def synchronous_response(message):
             ReplyToActivity(fill=message,
                             text='Synchronous Test: {}'.format(message["text"])).send()
 
+        elif 'history' in message['text']:
+            state = JsonState()
+            ReplyToActivity(fill=message,
+                            text='History: {}'.format(state.get_activities(2))).send()
+
 
 # This is a asynchronous task
 @celery.task()
@@ -35,11 +41,11 @@ def asynchronous_response(message):
             personal_message(message, response_text)
 
         elif "image" in message['text']:
-            contentUrl = 'https://imgflip.com/s/meme/Cute-Cat.jpg'
+            content_url = 'https://imgflip.com/s/meme/Cute-Cat.jpg'
             ReplyToActivity(fill=message,
                             attachments=[{
                                 'contentType': 'image/jpeg',
-                                'contentUrl': contentUrl,
+                                'contentUrl': content_url,
                                 'name': 'cute cat.jpg',
                             }]).send()
 

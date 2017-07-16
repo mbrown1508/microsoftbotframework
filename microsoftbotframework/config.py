@@ -26,7 +26,7 @@ class Config:
                     'http_proxy': None,
                     'https_proxy': None,
                     'cache': 'JsonCache',
-                    'state': 'JsonState',
+                    'state': None,
                 }, 'celery': {
                     'broker_url': None,
                 }, 'flask': {
@@ -38,7 +38,6 @@ class Config:
                 }, 'mongodb': {
                     'uri': None,
                     'database': 'microsoftbotframework',
-                    'collection': 'state',
                 }}
 
     def _get_yaml_config(self, config_location):

@@ -63,8 +63,9 @@ class Activity(Response):
             self.conversation = {"id": self.conversationId}
             
         # Set activityId if passed in args
-        self.activityId = kwargs.pop('activityId', self.activityId)
-        if self.activityId is not None:
+        activityId_arg = kwargs.pop('activityId', None)
+        if activityId_arg is not None:
+            self.activityId = activityId_arg
             self.id = self.activityId
 
         flip = kwargs.pop('flip', False if fill is None else True)

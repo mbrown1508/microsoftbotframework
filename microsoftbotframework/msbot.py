@@ -6,6 +6,7 @@ from celery.local import PromiseProxy
 from flask import Flask, request
 
 from .cache import JsonCache, RedisCache
+from .state import JsonState, MongodbState
 from .config import Config
 
 try:
@@ -17,7 +18,7 @@ except ImportError:
 
 class MsBot:
     def __init__(self, host=None, port=None, debug=None, app_client_id=None, verify_jwt_signature=None,
-                 config_location=None, cache=None):
+                 config_location=None, cache=None, state=None):
         self.app = Flask(__name__)
 
         self.processes = []
@@ -28,6 +29,7 @@ class MsBot:
         self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
 
         cache_arg = config.get_config(cache, 'cache')
+        state_arg = config.get_config(state, 'state')
 
         self.cache_certs = True
         try:
@@ -46,6 +48,11 @@ class MsBot:
         if self.cache_certs and self.verify_jwt_signature:
             self.cache = self.get_cache(cache_arg, config)
 
+        if state_arg is not None:
+            self.state = self.get_state(state_arg, config)
+        else:
+            self.state = None
+
         @self.app.route('/api/messages', methods=['POST'])
         def message_post():
             if self.verify_jwt_signature:
@@ -62,6 +69,8 @@ class MsBot:
 
                 self.app.logger.info('message.headers: {}'.format(json.dumps(json_headers)))
                 self.app.logger.info('message.body: {}'.format(json.dumps(json_message)))
+
+                self.save_response(json_message)
 
                 for process in self.processes:
                     if isinstance(process, PromiseProxy):
@@ -83,6 +92,18 @@ class MsBot:
                 raise(Exception('Invalid string cache option specified.'))
         else:
             return cache
+
+    @staticmethod
+    def get_state(state, config):
+        if isinstance(state, str):
+            if state == 'JsonState':
+                return JsonState()
+            elif state == 'MongodbState':
+                return MongodbState(config)
+            else:
+                raise(Exception('Invalid string state option specified.'))
+        else:
+            return state
 
     def add_process(self, process):
         self.processes.append(process)
@@ -180,3 +201,10 @@ class MsBot:
         else:
             self.app.logger.info('Got stored certificates')
             return json.loads(valid_certificates)
+
+    def save_response(self, activity):
+        if self.state is not None:
+            self.state.save_activity({
+                'type': 'received',
+                'activity': activity
+            })
