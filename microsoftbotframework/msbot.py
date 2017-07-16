@@ -182,5 +182,6 @@ class MsBot:
         if self.state is not None:
             self.state.save_activity({
                 'type': 'received',
+                'conversation_id': activity['conversation']['id'],
                 'activity': activity
             })

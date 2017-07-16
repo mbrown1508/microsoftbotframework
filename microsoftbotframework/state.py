@@ -8,7 +8,13 @@ import os
 from .config import Config
 
 
-def get_state(state, config=None):
+def get_state(state=None, config=None):
+    if state is None and config is None:
+        config = Config()
+
+    if state is None:
+        state = config.get_config(state, 'state')
+
     if isinstance(state, str):
         if state == 'JsonState':
             return JsonState()
@@ -248,7 +254,7 @@ class MongodbState(State):
         if last_id >= 0:
             self.conversation_collection.delete_one({'_id': last_id})
 
-    def get_activities(self, count=10):
+    def get_activities(self, count=10, conversation_id=None):
         last_id = self._get_last_id()
         if count == -1:
             first_id = 0
@@ -257,7 +263,10 @@ class MongodbState(State):
             if first_id < 0:
                 first_id = 0
 
-        return list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}))
+        if conversation_id is None:
+            return list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}))
+        else:
+            return list(self.conversation_collection.find({'conversation_id': conversation_id}))[-count:]
 
     def _create_counter(self):
         self.counters_collection.insert_one({'_id': "conversation_id", 'seq': 0})
@@ -451,14 +460,26 @@ class JsonState(State):
             data_file.truncate()
         return True
 
-    def get_activities(self, count=10):
+    def get_activities(self, count=10, conversation_id=None):
         with open(self.conversation_location) as data_file:
             data = json.load(data_file)
             values = data['activities']
-        if count == -1:
-            return values
+
+        return_values = []
+        current_count = 0
+        if conversation_id is not None:
+            for activity in reversed(values):
+                if activity['conversation_id'] == conversation_id:
+                    return_values.append(activity)
+                    current_count += 1
+                    if count != -1 and current_count == count:
+                        return return_values
+            return return_values
         else:
-            return values[-count:]
+            if count == -1:
+                return values
+            else:
+                return values[-count:]
 
     @staticmethod
     def _set_values(current_data, values):

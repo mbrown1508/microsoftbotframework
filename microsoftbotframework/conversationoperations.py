@@ -14,6 +14,7 @@ class ReplyToActivity(Activity):
         response = self._request(response_url, 'post', self.to_dict())
 
         self.save_response('replyToActivity',
+                           self.conversation['id'],
                            self.to_dict(),
                            {'conversationId': self.conversation['id'], 'activityId': self.activityId},
                            response.json())
@@ -32,6 +33,7 @@ class SendToConversation(Activity):
         response = self._request(response_url, 'post', self.to_dict())
 
         self.save_response('SendToConversation',
+                           self.conversation['id'],
                            self.to_dict(),
                            {'conversationId': self.conversation['id']},
                            response.json())
@@ -56,6 +58,7 @@ class DeleteActivity(Activity):
             response = None
 
         self.save_response('DeleteActivity',
+                           self.conversation['id'],
                            None,
                            {'conversationId': self.conversation['id'], 'activityId': self.activityId},
                            response)
@@ -92,6 +95,7 @@ class CreateConversation(Activity):
         response = self._request(response_url, 'post', response_json)
 
         self.save_response('CreateConversation',
+                           response.json()['id'],
                            response_json,
                            {},
                            response.json())
@@ -110,6 +114,7 @@ class GetConversationMembers(Activity):
         response = self._request(response_url, 'get')
 
         self.save_response('GetConversationMembers',
+                           self.conversation['id'],
                            None,
                            {'conversationId': self.conversation['id']},
                            response.json())
@@ -129,6 +134,7 @@ class GetActivityMembers(Activity):
         response = self._request(response_url, 'get')
 
         self.save_response('GetActivityMembers',
+                           self.conversation['id'],
                            None,
                            {'conversationId': self.conversation['id'], 'activityId': self.activityId},
                            response.json())

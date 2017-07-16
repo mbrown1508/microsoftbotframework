@@ -24,9 +24,10 @@ def synchronous_response(message):
                             text='Synchronous Test: {}'.format(message["text"])).send()
 
         elif 'history' in message['text']:
-            state = get_state('MongodbState')
+            state = get_state()
             ReplyToActivity(fill=message,
-                            text='History: {}'.format(state.get_activities(2))).send()
+                            text='All History: {} Conversation History: {}'.format(state.get_activities(2),
+                                                                                   state.get_activities(2, conversation_id=message['conversation']['id']))).send()
 
         elif "members" in message['text']:
             conversation_response = GetConversationMembers(fill=message).send()

@@ -168,10 +168,11 @@ class Response:
         else:
             return url1 + '/' + url2
 
-    def save_response(self, type, response_json, url_parameters, response):
+    def save_response(self, type, conversation_id, response_json, url_parameters, response):
         if self.state is not None:
             self.state.save_activity({
                 'type': type,
+                'conversation_id': conversation_id,
                 'activity': response_json,
                 'url_parameters': url_parameters,
                 'response': response,
