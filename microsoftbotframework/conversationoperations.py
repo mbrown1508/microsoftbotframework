@@ -48,12 +48,17 @@ class DeleteActivity(Activity):
                                     self.conversation['id'],
                                     self.activityId))
 
-        response = self._request(response_url, 'delete')
+        raw_response = self._request(response_url, 'delete')
+
+        if raw_response.text != '':
+            response = raw_response.json()
+        else:
+            response = None
 
         self.save_response('DeleteActivity',
                            None,
                            {'conversationId': self.conversation['id'], 'activityId': self.activityId},
-                           response.json())
+                           response)
         return response
 
 

@@ -48,10 +48,11 @@ def synchronous_response(message):
             response_info = ReplyToActivity(fill=message,
                                             text='Delete Test: {}'.format(message["text"])).send()
 
-            sleep(5)
+            sleep(2)
 
+            activity_id = response_info.json()['id']
             DeleteActivity(fill=message,
-                           activityId=response_info.json()['id']).send()
+                           activityId=activity_id).send()
 
         elif 'personal' in message['text']:
             personal_message(message, 'Personal Message: {}'.format(message['text']))
