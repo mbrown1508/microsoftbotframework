@@ -264,7 +264,7 @@ class MongodbState(State):
                 first_id = 0
 
         if conversation_id is None:
-            return list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}))
+            return list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}).sort("_id", DESCENDING))
         else:
             return list(self.conversation_collection.find({'conversation_id': conversation_id}).sort("_id", DESCENDING))[:count]
 
