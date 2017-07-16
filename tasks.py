@@ -28,12 +28,7 @@ def synchronous_response(message):
             ReplyToActivity(fill=message,
                             text='History: {}'.format(state.get_activities(2))).send()
 
-
-# This is a asynchronous task
-@celery.task()
-def asynchronous_response(message):
-    if message["type"] == "message":
-        if "members" in message['text']:
+        elif "members" in message['text']:
             conversation_response = GetConversationMembers(fill=message).send()
             activity_response = GetActivityMembers(fill=message).send()
 
@@ -49,10 +44,6 @@ def asynchronous_response(message):
                                 'name': 'cute cat.jpg',
                             }]).send()
 
-        elif "asynchronous" in message['text']:
-            ReplyToActivity(fill=message,
-                            text='Asynchronous Test: {}'.format(message["text"])).send()
-
         elif 'delete' in message['text']:
             response_info = ReplyToActivity(fill=message,
                                             text='Delete Test: {}'.format(message["text"])).send()
@@ -65,9 +56,18 @@ def asynchronous_response(message):
         elif 'personal' in message['text']:
             personal_message(message, 'Personal Message: {}'.format(message['text']))
 
-        elif 'synchronous' not in message["text"]:
+        elif 'asynchronous' not in message["text"]:
             ReplyToActivity(fill=message,
                             text='Nothing was queried').send()
+
+
+# This is a asynchronous task
+@celery.task()
+def asynchronous_response(message):
+    if message["type"] == "message":
+        if "asynchronous" in message['text']:
+            ReplyToActivity(fill=message,
+                            text='Asynchronous Test: {}'.format(message["text"])).send()
 
 
 def personal_message(message, response_text):
