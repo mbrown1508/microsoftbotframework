@@ -1,2 +1,4 @@
 celery:
     broker_pool_limit: None
+other:
+    state: MongodbState
