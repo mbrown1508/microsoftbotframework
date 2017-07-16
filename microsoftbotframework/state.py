@@ -266,7 +266,7 @@ class MongodbState(State):
         if conversation_id is None:
             return list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}))
         else:
-            return list(self.conversation_collection.find({'conversation_id': conversation_id}))[-count:]
+            return list(self.conversation_collection.find({'conversation_id': conversation_id}).sort("_id", -1))[-count:]
 
     def _create_counter(self):
         self.counters_collection.insert_one({'_id': "conversation_id", 'seq': 0})
