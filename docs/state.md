@@ -56,9 +56,10 @@ export STATE=JsonState
 You can get the saved conversation as follows.
 * count is the number of records to return, default 10
 * conversation_id will only get records regarding to that conversation, default all
+* simple will respond with an array of the text strings from the activities rather than the whole activities.
 ```python
 json_state = JsonState()
-json_state.get_activities(self, count=10, conversation_id=None)
+json_state.get_activities(self, count=10, conversation_id=None, simple=False)
 ```
 
 

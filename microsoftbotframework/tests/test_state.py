@@ -56,7 +56,6 @@ def merge_two_dicts(x, y):
 
 class JsonStateTestCase(TestCase):
     def setUp(self):
-        self.maxDiff = None
         self._remove_files()
         self.state = JsonState(state_file='teststate.json', conversation_file='testconversation.json')
 
@@ -667,6 +666,7 @@ class JsonStateTestCase(TestCase):
     def test_get_conversation_id(self):
         response_activities = {}
         combined_response = []
+        simple_combined_response = []
         multi = 0
         for conversation_id in ['conv1', 'conv2']:
             response_activities[conversation_id] = []
@@ -676,9 +676,11 @@ class JsonStateTestCase(TestCase):
                 self.state.save_activity(activity)
                 response_activities[conversation_id].append(response_activity)
                 combined_response.append(response_activity)
+                simple_combined_response.append(response_activity['activity']['text'])
             multi += 1
 
         self.assertEqual(self.state.get_activities(), combined_response)
+        self.assertEqual(self.state.get_activities(simple=True), simple_combined_response)
         self.assertEqual(len(self.state.get_activities()), 6)
 
         self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'])
@@ -689,23 +691,32 @@ class JsonStateTestCase(TestCase):
 
     def test_get_conversation_id_limit(self):
         response_activities = {}
+        simple_response_activities = {}
         combined_response = []
+        simple_combined_response = []
         multi = 0
         for conversation_id in ['conv1', 'conv2']:
             response_activities[conversation_id] = []
+            simple_response_activities[conversation_id] = []
             for n in range(1, 31):
                 n += multi * 30
                 activity, response_activity = self._get_activity(n, conversation_id)
                 self.state.save_activity(activity)
                 response_activities[conversation_id].append(response_activity)
+                simple_response_activities[conversation_id].append(response_activity['activity']['text'])
                 combined_response.append(response_activity)
+                simple_combined_response.append(response_activity['activity']['text'])
             multi += 1
 
         self.assertEqual(self.state.get_activities(), combined_response[-10:])
+        self.assertEqual(self.state.get_activities(simple=True), simple_combined_response[-10:])
         self.assertEqual(len(self.state.get_activities()), 10)
 
         self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'][-10:])
         self.assertEqual(self.state.get_activities(conversation_id='conv2'), response_activities['conv2'][-10:])
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1', simple=True), simple_response_activities['conv1'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2', simple=True), simple_response_activities['conv2'][-10:])
 
         self.assertEqual(len(self.state.get_activities(conversation_id='conv1')), 10)
         self.assertEqual(len(self.state.get_activities(conversation_id='conv2')), 10)

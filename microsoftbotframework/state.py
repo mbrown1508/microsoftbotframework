@@ -97,6 +97,28 @@ class State(object):
             user_id = fill['recipient']['id'] if bot else fill['from']['id']
             return fill['channelId'], fill['conversation']['id'], user_id
 
+    @staticmethod
+    def _simplify_response(value, simple):
+        if not simple:
+            return value
+        else:
+            if value['type'] in ['replyToActivity', 'SendToConversation', 'received']:
+                return value['activity']['text']
+
+    @staticmethod
+    def _simplify_list(list, simple):
+        if not simple:
+            return list
+        return_list = []
+        for value in list:
+            if value['type'] in ['replyToActivity', 'SendToConversation', 'received']:
+                try:
+                    return_list.append(value['activity']['text'])
+                except:
+                    # attachments fail here
+                    pass
+        return return_list
+
 
 class MongodbState(State):
     # currently loading is only from config file
@@ -254,7 +276,7 @@ class MongodbState(State):
         if last_id >= 0:
             self.conversation_collection.delete_one({'_id': last_id})
 
-    def get_activities(self, count=10, conversation_id=None):
+    def get_activities(self, count=10, conversation_id=None, simple=False):
         last_id = self._get_last_id()
         if count == -1:
             first_id = 0
@@ -264,9 +286,9 @@ class MongodbState(State):
                 first_id = 0
 
         if conversation_id is None:
-            return list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}).sort("_id", ASCENDING))
+            return self._simplify_list(list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}).sort("_id", ASCENDING)), simple)
         else:
-            return list(self.conversation_collection.find({'conversation_id': conversation_id}).sort("_id", ASCENDING))[-count:]
+            return self._simplify_list(list(self.conversation_collection.find({'conversation_id': conversation_id}).sort("_id", ASCENDING)), simple)[-count:]
 
     def _create_counter(self):
         self.counters_collection.insert_one({'_id': "conversation_id", 'seq': 0})
@@ -460,7 +482,7 @@ class JsonState(State):
             data_file.truncate()
         return True
 
-    def get_activities(self, count=10, conversation_id=None):
+    def get_activities(self, count=10, conversation_id=None, simple=False):
         with open(self.conversation_location) as data_file:
             data = json.load(data_file)
             values = data['activities']
@@ -470,16 +492,16 @@ class JsonState(State):
         if conversation_id is not None:
             for activity in reversed(values):
                 if activity['conversation_id'] == conversation_id:
-                    return_values.append(activity)
+                    return_values.append(self._simplify_response(activity, simple))
                     current_count += 1
                     if count != -1 and current_count == count:
                         return return_values[::-1]
             return return_values[::-1]
         else:
             if count == -1:
-                return values
+                return self._simplify_list(values, simple)
             else:
-                return values[-count:]
+                return self._simplify_list(values, simple)[-count:]
 
     @staticmethod
     def _set_values(current_data, values):
