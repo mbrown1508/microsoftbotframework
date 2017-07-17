@@ -26,8 +26,8 @@ def synchronous_response(message):
         elif 'history' in message['text']:
             state = get_state()
             ReplyToActivity(fill=message,
-                            text='All History: {} Conversation History: {}'.format(state.get_activities(2),
-                                                                                   state.get_activities(2, conversation_id=message['conversation']['id']))).send()
+                            text='All History: {} Conversation History: {}'.format(state.get_activities(3),
+                                                                                   state.get_activities(3, conversation_id=message['conversation']['id']))).send()
 
         elif "members" in message['text']:
             conversation_response = GetConversationMembers(fill=message).send()

@@ -5,10 +5,10 @@ There are currently 2 cache adapters available in the library:
 
 ## Installation
 #####JsonCache
-JsonCache equires write preveliges to the working directory or the configured directory.
+JsonCache requires write privileges to the working directory or the configured directory.
 
 #####RedisCache 
-RedisCache requires a working redis data store. See the following url for a good guide on installing. https://www.linode.com/docs/databases/redis/deploy-redis-on-ubuntu-or-debian
+RedisCache requires a working redis data store. See the following url for a good guide on installing. https://www.linode.com/docs/databases/redis/deploy-redis-on-ubuntu-or-debian. If using Heroku you can also the resources to add "Heroku Redis :: Redis, Hobby Dev".
 
 In addition the redis library is required. It can be installed with the following command.
 
@@ -46,33 +46,27 @@ bot = MsBot(cache=False)
 ## Configuring Cache Objects
 You can configure the cache objects in 3 ways.
 
-#####config.yaml
-```yamlex
+#####config.yaml (Redis Only)
+```yaml
 other:
-    cache: RedisCache
+    cache: RedisCache   # cache to use
 redis:
     uri: redis://localhost:6379
-json:
-    cache_file: cache.json
-    root_dir: /home/user
 ```
 
 #####inline arguments
 ```python
-bot = MsBot(cache=RedisCache(config))
+bot = MsBot(state=RedisCache(config))
 
-bot = MsBot(cache=JsonCache('cache.json'))
+bot = MsBot(state=JsonCache('cache.json'))
 ```
 
-#####environment variables
+#####environment variables (Redis Only)
 ```sh
 # in linux
-export CACHE=RedisCache
+export CACHE=JsonCache
 export REDIS_URI=redis://localhost:6379
-export JSON_ROOT_DIR=/home/user
 ```
-
-
 
 
 
