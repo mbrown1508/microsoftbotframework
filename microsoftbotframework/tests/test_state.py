@@ -57,7 +57,7 @@ def merge_two_dicts(x, y):
 class JsonStateTestCase(TestCase):
     def setUp(self):
         self._remove_files()
-        self.state = JsonState(state_filename='teststate.json', conversation_filename='testconversation.json')
+        self.state = JsonState(state_file='teststate.json', conversation_file='testconversation.json')
 
     def tearDown(self):
         pass
@@ -611,33 +611,145 @@ class JsonStateTestCase(TestCase):
         self.assertEqual(self.state.set_user_data(AGE_VALUES2, fill=MESSAGE, bot=True), AGE_VALUES2)
         self.assertEqual(self.state.get_user_data(user_id=BOT), AGE_VALUES2)
 
+    def _get_activity(self, id, conversation_id=None):
+        conversation_id = id if conversation_id is None else conversation_id
+        activity = {
+            'type': 'SendToConversation',
+            'conversation_id': '{}'.format(conversation_id),
+            'activity': {'id': 'asdf', 'text': 'message text - {}'.format(id)},
+            'url_parameters': {},
+            'response': {'info': 'success'},
+        }
+
+        response_activity = activity.copy()
+        response_activity['_id'] = id
+
+        return activity, response_activity
+
     def test_add_conversation(self):
-        self.state.save_activity({'activity': 'activity1'})
-        self.assertEqual(self.state.get_activities(), [{'activity': 'activity1', '_id': 1}])
+        activity, response_activity = self._get_activity(1)
+
+        self.state.save_activity(activity)
+        self.assertEqual(self.state.get_activities(), [response_activity])
 
     def test_add_multiple_conversations(self):
-        for n in range(1,15):
-            self.state.save_activity({'activity': 'activity{}'.format(n)})
+        response_activities = []
+        for n in range(1, 15):
+            activity, response_activity = self._get_activity(n)
+            self.state.save_activity(activity)
+            response_activities.append(response_activity)
 
-        self.assertEqual(self.state.get_activities(), [{'activity': 'activity{}'.format(x), '_id': x} for x in range(5, 15)])
+        self.assertEqual(self.state.get_activities(), response_activities[-10:])
         self.assertEqual(len(self.state.get_activities()), 10)
 
     def test_add_multiple_conversations_with_argument(self):
+        response_activities = []
         for n in range(1, 15):
-            self.state.save_activity({'activity': 'activity{}'.format(n)})
+            activity, response_activity = self._get_activity(n)
+            self.state.save_activity(activity)
+            response_activities.append(response_activity)
 
-        self.assertEqual(self.state.get_activities(count=5), [{'activity': 'activity{}'.format(x), '_id': x} for x in range(10, 15)])
+        self.assertEqual(self.state.get_activities(count=5), response_activities[-5:])
         self.assertEqual(len(self.state.get_activities(count=5)), 5)
 
-        self.assertEqual(self.state.get_activities(count=15), [{'activity': 'activity{}'.format(x), '_id': x} for x in range(1, 15)])
+        self.assertEqual(self.state.get_activities(count=15), response_activities[-15:])
         self.assertEqual(len(self.state.get_activities(count=-1)), 14)
         self.assertEqual(len(self.state.get_activities(count=100)), 14)
 
     def test_maximum_stored(self):
         for n in range(1, 60):
-            self.state.save_activity({'activity': 'activity{}'.format(n)})
+            activity, __ = self._get_activity(n)
+            self.state.save_activity(activity)
 
         self.assertEqual(len(self.state.get_activities(count=-1)), 50)
+
+    def test_get_conversation_id(self):
+        response_activities = {}
+        combined_response = []
+        simple_combined_response = []
+        multi = 0
+        for conversation_id in ['conv1', 'conv2']:
+            response_activities[conversation_id] = []
+            for n in range(1, 4):
+                n += multi * 3
+                activity, response_activity = self._get_activity(n, conversation_id)
+                self.state.save_activity(activity)
+                response_activities[conversation_id].append(response_activity)
+                combined_response.append(response_activity)
+                simple_combined_response.append(response_activity['activity']['text'])
+            multi += 1
+
+        self.assertEqual(self.state.get_activities(), combined_response)
+        self.assertEqual(self.state.get_activities(simple=True), simple_combined_response)
+        self.assertEqual(len(self.state.get_activities()), 6)
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2'), response_activities['conv2'])
+
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv1')), 3)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv2')), 3)
+
+    def test_get_conversation_id_limit(self):
+        response_activities = {}
+        simple_response_activities = {}
+        combined_response = []
+        simple_combined_response = []
+        multi = 0
+        for conversation_id in ['conv1', 'conv2']:
+            response_activities[conversation_id] = []
+            simple_response_activities[conversation_id] = []
+            for n in range(1, 31):
+                n += multi * 30
+                activity, response_activity = self._get_activity(n, conversation_id)
+                self.state.save_activity(activity)
+                response_activities[conversation_id].append(response_activity)
+                simple_response_activities[conversation_id].append(response_activity['activity']['text'])
+                combined_response.append(response_activity)
+                simple_combined_response.append(response_activity['activity']['text'])
+            multi += 1
+
+        self.assertEqual(self.state.get_activities(), combined_response[-10:])
+        self.assertEqual(self.state.get_activities(simple=True), simple_combined_response[-10:])
+        self.assertEqual(len(self.state.get_activities()), 10)
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2'), response_activities['conv2'][-10:])
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1', simple=True), simple_response_activities['conv1'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2', simple=True), simple_response_activities['conv2'][-10:])
+
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv1')), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv2')), 10)
+
+    def test_get_conversation_id_alternate(self):
+        response_activities = {}
+        combined_response = []
+        response_activities['conv1'] = []
+        response_activities['conv2'] = []
+        for n in range(1, 61, 2):
+            multi = 0
+            for conversation_id in ['conv1', 'conv2']:
+                n += multi
+                activity, response_activity = self._get_activity(n, conversation_id)
+                self.state.save_activity(activity)
+                response_activities[conversation_id].append(response_activity)
+                combined_response.append(response_activity)
+                multi += 1
+
+        self.assertEqual(self.state.get_activities(), combined_response[-10:])
+        self.assertEqual(len(self.state.get_activities()), 10)
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2'), response_activities['conv2'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv3'), [])
+
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv1')), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv2')), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv3')), 0)
+
+        # Test limits
+        self.assertEqual(len(self.state.get_activities(count=50, conversation_id='conv2')), 25)
+        self.assertEqual(len(self.state.get_activities(count=5, conversation_id='conv2')), 5)
 
 
 class MongodbStateTestCase(JsonStateTestCase):

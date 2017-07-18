@@ -1,5 +1,6 @@
 from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
 import celery
+import json
 from time import sleep
 from microsoftbotframework import get_state
 
@@ -23,11 +24,17 @@ def synchronous_response(message):
             ReplyToActivity(fill=message,
                             text='Synchronous Test: {}'.format(message["text"])).send()
 
+        elif 'simple history' in message['text']:
+            state = get_state()
+            ReplyToActivity(fill=message,
+                            text=json.dumps({'allHistory': state.get_activities(3, simple=True),
+                                  'conversationHistory': state.get_activities(3, simple=True, conversation_id=message['conversation']['id'])})).send()
+
         elif 'history' in message['text']:
             state = get_state()
             ReplyToActivity(fill=message,
-                            text='All History: {} Conversation History: {}'.format(state.get_activities(2),
-                                                                                   state.get_activities(2, conversation_id=message['conversation']['id']))).send()
+                            text=json.dumps({'allHistory': state.get_activities(3),
+                                  'conversationHistory': state.get_activities(3, conversation_id=message['conversation']['id'])})).send()
 
         elif "members" in message['text']:
             conversation_response = GetConversationMembers(fill=message).send()
