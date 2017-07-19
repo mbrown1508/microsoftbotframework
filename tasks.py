@@ -1,4 +1,4 @@
-from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
+from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers, Config
 import celery
 import json
 from time import sleep
@@ -23,6 +23,11 @@ def synchronous_response(message):
         if 'synchronous' in message["text"] and 'asynchronous' not in message['text']:
             ReplyToActivity(fill=message,
                             text='Synchronous Test: {}'.format(message["text"])).send()
+
+        elif 'config' in message["text"]:
+            config = Config()
+            ReplyToActivity(fill=message,
+                            text='Config: {}'.format(config.config).send())
 
         elif 'simple history' in message['text']:
             state = get_state()
