@@ -18,9 +18,10 @@ bot = MsBot(verify_jwt_signature=False)
 bot.add_process(respond_to_conversation_update)
 bot.add_process(synchronous_response)
 bot.add_process(asynchronous_response)
-
-log = bot.app.logger
-log.setLevel(logging.DEBUG)
+#
+log = bot.logger
+log.setLevel(logging.INFO)
 log.addHandler(streamHandler)
 
-bot.run()
+if __name__ == '__main__':
+    bot.run()

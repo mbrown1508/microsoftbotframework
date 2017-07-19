@@ -16,80 +16,95 @@ except ImportError:
     pass
 
 
-class MsBot:
-    def __init__(self, host=None, port=None, debug=None, app_client_id=None, verify_jwt_signature=None,
-                 config_location=None, cache=None, state=None):
-        self.app = Flask(__name__)
+class MsBot(Flask):
+    def __init__(self, import_name=None, app_client_id=None, verify_jwt_signature=None,
+                 config_location=None, cache=None, state=None, *args, **kwargs):
+
+        depreciated_host = kwargs.pop('host', None)
+        depreciated_port = kwargs.pop('port', None)
+        depreciated_debug = kwargs.pop('debug', None)
+
+        if depreciated_debug is not None or depreciated_port is not None or depreciated_host is not None:
+            raise(Exception('Depreciated: host, port and debug arguments are now passed to the MsBot.run() method.'))
+
+        # This is left as a option incase the user wants to extend the MsBot object
+        name = __name__ if import_name is None else import_name
+
+        super().__init__(name, *args, **kwargs)
+        self.add_url_rule('/api/messages', view_func=self._message_post, methods=['POST'])
+
+        self.mbf_config = Config(config_location=config_location)
 
         self.processes = []
-        config = Config(config_location=config_location)
-        self.host = config.get_config(host, 'HOST', root='flask')
-        self.port = config.get_config(port, 'PORT', root='flask')
-        self.debug = config.get_config(debug, 'DEBUG', root='flask')
-        self.app_client_id = config.get_config(app_client_id, 'APP_CLIENT_ID')
 
-        cache_arg = config.get_config(cache, 'cache')
-        state_arg = config.get_config(state, 'state')
+        self.app_client_id = self.mbf_config.get_config(app_client_id, 'APP_CLIENT_ID')
+
+        cache_arg = self.mbf_config.get_config(cache, 'cache')
+        state_arg = self.mbf_config.get_config(state, 'state')
 
         self.cache_certs = True
         try:
             from jwt.algorithms import RSAAlgorithm
             import jwt
-            self.verify_jwt_signature = config.get_config(verify_jwt_signature, 'VERIFY_JWT_SIGNATURE')
+            self.verify_jwt_signature = self.mbf_config.get_config(verify_jwt_signature, 'VERIFY_JWT_SIGNATURE')
         except ImportError:
             self.verify_jwt_signature = False
             self.cache_certs = False
-            self.app.logger.info('The jwt library\s has not been installed. Disabling certificate caching.')
+            self.logger.info('The jwt library\s has not been installed. Disabling certificate caching.')
 
         if (cache_arg is None or not cache_arg) and self.verify_jwt_signature:
-            self.app.logger.info('A cache object has not been set. Disabling certificate caching.')
+            self.logger.info('A cache object has not been set. Disabling certificate caching.')
             self.cache_certs = False
 
         if self.cache_certs and self.verify_jwt_signature:
-            self.cache = get_cache(cache_arg, config)
+            self.cache = get_cache(cache_arg, self.mbf_config)
 
         if state_arg is not None:
-            self.state = get_state(state_arg, config)
+            self.state = get_state(state_arg, self.mbf_config)
         else:
             self.state = None
 
-        @self.app.route('/api/messages', methods=['POST'])
-        def message_post():
-            if self.verify_jwt_signature:
-                valid_token = self._verify_token(request)
-            else:
-                valid_token = True
+    def run(self, host=None, port=None, debug=None, load_dotenv=True, **options):
+        # Set the flask config if it is in the config file / environment vars
+        host = self.mbf_config.get_config(host, 'HOST', root='flask')
+        port = self.mbf_config.get_config(port, 'PORT', root='flask')
+        debug = self.mbf_config.get_config(debug, 'DEBUG', root='flask')
 
-            if valid_token:
-                json_message = request.get_json()
+        super().run(host, port, debug, **options)
 
-                json_headers = {}
-                for key, value in request.headers:
-                    json_headers[key] = value
+    def _message_post(self):
+        if self.verify_jwt_signature:
+            valid_token = self._verify_token(request)
+        else:
+            valid_token = True
 
-                self.app.logger.info('message.headers: {}'.format(json.dumps(json_headers)))
-                self.app.logger.info('message.body: {}'.format(json.dumps(json_message)))
+        if valid_token:
+            json_message = request.get_json()
 
-                self.save_response(json_message)
+            json_headers = {}
+            for key, value in request.headers:
+                json_headers[key] = value
 
-                for process in self.processes:
-                    if isinstance(process, PromiseProxy):
-                        self.app.logger.info('Processing task {} asynchronously.'.format(type(process).__name__))
-                        process.delay(json_message)
-                    elif callable(process):
-                        self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
-                        process(json_message)
+            self.logger.info('message.headers: {}'.format(json.dumps(json_headers)))
+            self.logger.info('message.body: {}'.format(json.dumps(json_message)))
 
-                resp = Response()
-                resp.headers['User-Agent'] = "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"
-                resp.status_code = 202
-                return resp
+            self.save_response(json_message)
+
+            for process in self.processes:
+                if isinstance(process, PromiseProxy):
+                    self.logger.info('Processing task {} asynchronously.'.format(type(process).__name__))
+                    process.delay(json_message)
+                elif callable(process):
+                    self.logger.info('Processing task {} synchronously.'.format(process.__name__))
+                    process(json_message)
+
+            resp = Response()
+            resp.headers['User-Agent'] = "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"
+            resp.status_code = 202
+            return resp
 
     def add_process(self, process):
         self.processes.append(process)
-
-    def run(self):
-        self.app.run(host=self.host, port=self.port, debug=self.debug)
 
     def _verify_token(self, request, forced_refresh=False):
         authorization_header = request.headers['Authorization']
@@ -105,7 +120,7 @@ class MsBot:
 
         # 1. The token was sent in the HTTP Authorization header with 'Bearer' scheme
         if authorization_scheme != "Bearer":
-            self.app.logger.warning('The token was not sent in the http authorisation header with the Bearer scheme.')
+            self.logger.warning('The token was not sent in the http authorisation header with the Bearer scheme.')
             return False
 
         # 2. The token is valid JSON that conforms to the JWT standard (see references)
@@ -123,25 +138,25 @@ class MsBot:
                 try:
                     decoded_jwt = jwt.decode(token, public_key, algorithms=['RS256'], audience=self.app_client_id)
                 except jwt.exceptions.InvalidTokenError as e:
-                    self.app.logger.warning('{}'.format(e))
+                    self.logger.warning('{}'.format(e))
                     return False
 
         if decoded_jwt is None:
             if self.cache_certs and not forced_refresh:
                 # Force cache refresh
-                self.app.logger.warning('Forcing cache refresh as no valid certificate was found.')
+                self.logger.warning('Forcing cache refresh as no valid certificate was found.')
                 self._get_remote_certificates()
                 return self._verify_token(request, forced_refresh=True)
 
-            self.app.logger.warning('No valid certificate was found to verify JWT')
+            self.logger.warning('No valid certificate was found to verify JWT')
             return False
 
         # 3. The token contains an issuer claim with value of https://api.botframework.com
         if decoded_jwt['iss'] != 'https://api.botframework.com':
-            self.app.logger.warning('The token issuer claim had the incorrect value of {}'.format(decoded_jwt['iss']))
+            self.logger.warning('The token issuer claim had the incorrect value of {}'.format(decoded_jwt['iss']))
             return False
 
-        self.app.logger.info('Token was validated - {}'.format(json.dumps(decoded_jwt)))
+        self.logger.info('Token was validated - {}'.format(json.dumps(decoded_jwt)))
         return decoded_jwt
 
     def _get_remote_certificates(self):
@@ -164,7 +179,7 @@ class MsBot:
         self.cache.set("valid_certificates", json.dumps(valid_certificates))
         self.cache.set("certificates_expire_at", expires_at_string)
 
-        self.app.logger.info('Certificates stored')
+        self.logger.info('Certificates stored')
 
     @staticmethod
     def _has_certificate_expired(expires_at):
@@ -176,10 +191,10 @@ class MsBot:
 
         if valid_certificates is None or certificates_expire_at is None or \
                 self._has_certificate_expired(certificates_expire_at):
-            self.app.logger.info('Getting remote certificates')
+            self.logger.info('Getting remote certificates')
             return self._get_remote_certificates()
         else:
-            self.app.logger.info('Got stored certificates')
+            self.logger.info('Got stored certificates')
             return json.loads(valid_certificates)
 
     def save_response(self, activity):
