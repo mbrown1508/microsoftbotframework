@@ -70,7 +70,7 @@ class Config:
                 default_config[root] = {}
             for sub in values.keys():
                 default_config[root][sub] = yaml_config[root][sub]
-                self.logger.info('{}:{} loaded from yaml config'.format(root, sub))
+                self.logger.debug('{}:{} loaded from yaml config'.format(root, sub))
 
         return default_config
 
@@ -83,7 +83,7 @@ class Config:
                     env_key = '{}_{}'.format(root, sub).upper()
                 if env_key in environment_vars:
                     config[root][sub] = environment_vars[env_key]
-                    self.logger.info('{}:{} loaded from global vars'.format(root, sub))
+                    self.logger.debug('{}:{} loaded from global vars'.format(root, sub))
 
         sutable_fields = ['OTHER', 'FLASK', 'CELERY', 'REDIS']
         for env_key in environment_vars:
