@@ -3,7 +3,7 @@ import json
 
 import requests
 from celery.local import PromiseProxy
-from flask import Flask, request
+from flask import Flask, request, Response
 
 from .cache import get_cache
 from .state import get_state
@@ -79,7 +79,11 @@ class MsBot:
                     elif callable(process):
                         self.app.logger.info('Processing task {} synchronously.'.format(process.__name__))
                         process(json_message)
-                return "Success"
+
+                resp = Response()
+                resp.headers['User-Agent'] = "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"
+                resp.status_code = 202
+                return resp
 
     def add_process(self, process):
         self.processes.append(process)

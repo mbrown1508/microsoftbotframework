@@ -127,7 +127,8 @@ class Response:
             else:
                 token = self._get_remote_auth_token()
 
-            self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"])}
+            self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"]),
+                            "User-Agent": "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"}
 
     def _request(self, response_url, method, response_json=None):
         self._set_header()
