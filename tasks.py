@@ -27,7 +27,7 @@ def synchronous_response(message):
         elif 'config' in message["text"]:
             config = Config()
             ReplyToActivity(fill=message,
-                            text='Config: {}'.format(config.config).send())
+                            text='Config: {}'.format(config.config)).send()
 
         elif 'simple history' in message['text']:
             state = get_state()
