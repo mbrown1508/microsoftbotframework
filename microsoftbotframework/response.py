@@ -149,7 +149,7 @@ class Response:
 
         post_response = request_method(response_url, json=response_json, headers=self.headers)
 
-        if post_response.status_code == 200 or post_response.status_code == 201:
+        if 300 > post_response.status_code >= 200:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text))
         else:
             logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Text {}'
