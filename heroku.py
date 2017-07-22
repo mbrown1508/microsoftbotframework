@@ -22,7 +22,7 @@ logging.basicConfig(
     level=logging.INFO,
     format=log_format)
 
-bot = MsBot(verify_jwt_signature=False)
+bot = MsBot()
 bot.add_process(respond_to_conversation_update)
 bot.add_process(synchronous_response)
 bot.add_process(asynchronous_response)
