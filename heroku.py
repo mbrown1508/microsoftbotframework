@@ -2,8 +2,6 @@
 I use this file to test the library on heroku.
 '''
 
-
-import celery
 from tasks import *
 from microsoftbotframework import MsBot
 import logging
@@ -30,6 +28,4 @@ log.setLevel(logging.INFO)
 log.addHandler(streamHandler)
 
 if __name__ == '__main__':
-    import microsoftbotframework.runcelery
-    print('Here.....')
     bot.run()
