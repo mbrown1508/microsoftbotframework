@@ -13,7 +13,7 @@ class ReplyToActivity(Activity):
 
         response = self._request(response_url, 'post', self.to_dict())
 
-        self.save_response('replyToActivity',
+        self.save_response('ReplyToActivity',
                            self.conversation['id'],
                            self.to_dict(),
                            {'conversationId': self.conversation['id'], 'activityId': self.activityId},

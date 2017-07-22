@@ -102,7 +102,7 @@ class State(object):
         if not simple:
             return value
         else:
-            if value['type'] in ['replyToActivity', 'SendToConversation', 'received']:
+            if value['type'] in ['ReplyToActivity', 'SendToConversation', 'received']:
                 try:
                     return value['activity']['text']
                 except:
@@ -117,7 +117,7 @@ class State(object):
             return list
         return_list = []
         for value in list:
-            if value['type'] in ['replyToActivity', 'SendToConversation', 'received']:
+            if value['type'] in ['ReplyToActivity', 'SendToConversation', 'received']:
                 try:
                     return_list.append(value['activity']['text'])
                 except:
@@ -291,10 +291,16 @@ class MongodbState(State):
             if first_id < 0:
                 first_id = 0
 
-        if conversation_id is None:
-            return self._simplify_list(list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}).sort("_id", ASCENDING)), simple)
+        if count == -1:
+            count_index = 0
         else:
-            return self._simplify_list(list(self.conversation_collection.find({'conversation_id': conversation_id}).sort("_id", ASCENDING)), simple)[-count:]
+            count_index = -count
+
+        if conversation_id is None:
+            #list = self._simplify_list(list(self.conversation_collection.find({'_id': {'$gt': first_id, '$lte': last_id}}).sort("_id", ASCENDING)), simple)
+            return self._simplify_list(list(self.conversation_collection.find().sort("_id", ASCENDING)), simple)[count_index:]
+        else:
+            return self._simplify_list(list(self.conversation_collection.find({'conversation_id': conversation_id}).sort("_id", ASCENDING)), simple)[count_index:]
 
     def _create_counter(self):
         self.counters_collection.insert_one({'_id': "conversation_id", 'seq': 0})

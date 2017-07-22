@@ -50,7 +50,7 @@ Enter this address in the *Enter your endpoint URL* header of the emulator.
 Start chatting! If you followed the above instructions it should repeat back what you type in.
 
 ## To run this app using the online bot framework
-In order to interact with the Microsoft bot framework you need to have a internet facing https endpoint with a valid certificate. This guide will show how to use gunicorn and heroku to host the application but you can easily use nginx, gunicorn and ubuntu for example.
+In order to interact with the Microsoft bot framework you need to have a internet facing https endpoint with a valid certificate. This guide will show how to use gunicorn and heroku to host the application but you can easily use any wsgi hosting option as the MsBot object extends Flask.
 
 #### Create a Microsoft Chatbot
 Go to https://dev.botframework.com/bots. Register a bot and generate a 'Microsoft App ID' and 'Microsoft App Secret'. Don't worry about the messaging endpoint as we will create that soon. Create a config.yaml file in the root of your project and place the following information:

@@ -32,14 +32,14 @@ class Response:
             logger.info('The \'APP_CLIENT_SECRET\' has not been set. Disabling authentication.')
             self.auth = False
 
-        self.cache_token = True
+        self.cache_token = False
+        self.cache = None
         if self.auth:
             if cache_arg is None or not cache_arg:
                 logger.info('A cache object has not been set. Disabling token caching.')
-                self.cache_token = False
-                self.cache = None
             else:
                 self.cache = get_cache(cache_arg, config)
+                self.cache_token = True
 
         if state_arg is not None:
             self.state = get_state(state_arg, config)

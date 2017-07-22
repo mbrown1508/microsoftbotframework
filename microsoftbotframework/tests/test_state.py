@@ -3,6 +3,7 @@ from ..config import Config
 from ..state import JsonState, MongodbState
 from pymongo import MongoClient
 import os
+from random import choice
 
 USER1 = '29:1SPw4GoUNGtDmuYex45S13g-1zgri1qp43uA345yjSFc'
 USER2 = '29:1SPw4GoUNGtDmuYex45S13g-1zgri1qp43uA547yjSFc'
@@ -611,15 +612,26 @@ class JsonStateTestCase(TestCase):
         self.assertEqual(self.state.set_user_data(AGE_VALUES2, fill=MESSAGE, bot=True), AGE_VALUES2)
         self.assertEqual(self.state.get_user_data(user_id=BOT), AGE_VALUES2)
 
-    def _get_activity(self, id, conversation_id=None):
+    def _get_activity(self, id, conversation_id=None, type='ReplyToActivity', text=True):
         conversation_id = id if conversation_id is None else conversation_id
         activity = {
-            'type': 'SendToConversation',
+            'type': type,
             'conversation_id': '{}'.format(conversation_id),
-            'activity': {'id': 'asdf', 'text': 'message text - {}'.format(id)},
+            'activity': {'id': 'asdf', 'type': type},
             'url_parameters': {},
             'response': {'info': 'success'},
         }
+
+        if type in ['received', 'ReplyToActivity', 'SendToConversation']:
+            if text:
+                activity['activity']['text'] = 'message text - {}'.format(id)
+                if type == 'received':
+                    activity['activity']['type'] = 'message'
+            else:
+                if type == 'received':
+                    activity['activity']['type'] = choice(
+                        ['contactRelationUpdate', 'conversationUpdate', 'deleteUserData', 'ping', 'typing',
+                         'endOfConversation'])
 
         response_activity = activity.copy()
         response_activity['_id'] = id
@@ -679,7 +691,7 @@ class JsonStateTestCase(TestCase):
                 simple_combined_response.append(response_activity['activity']['text'])
             multi += 1
 
-        self.assertEqual(self.state.get_activities(), combined_response)
+        self.assertEqual(self.state.get_activities(), combined_response, combined_response)
         self.assertEqual(self.state.get_activities(simple=True), simple_combined_response)
         self.assertEqual(len(self.state.get_activities()), 6)
 
@@ -751,6 +763,80 @@ class JsonStateTestCase(TestCase):
         self.assertEqual(len(self.state.get_activities(count=50, conversation_id='conv2')), 25)
         self.assertEqual(len(self.state.get_activities(count=5, conversation_id='conv2')), 5)
 
+    def test_get_conversation_id_different_types(self):
+
+        values = ['received', 'ReplyToActivity', 'SendToConversation', 'DeleteActivity', 'CreateConversation', 'GetConversationMembers',
+                  'GetActivityMembers']
+
+        get_type = self._get_type(values)
+
+        response_activities = {}
+        simple_response_activities = {}
+
+        combined_response = []
+        simple_combined_response = []
+
+        response_activities['conv1'] = []
+        response_activities['conv2'] = []
+        simple_response_activities['conv1'] = []
+        simple_response_activities['conv2'] = []
+
+        for n in range(1, 61, 2):
+            multi = 0
+            for conversation_id in ['conv1', 'conv2']:
+                n += multi
+                activity, response_activity = self._get_activity(n, conversation_id, type=next(get_type))
+                self.state.save_activity(activity)
+
+                response_activities[conversation_id].append(response_activity)
+                if 'text' in response_activity['activity']:
+                    simple_response_activities[conversation_id].append(response_activity['activity']['text'])
+
+                combined_response.append(response_activity)
+                if 'text' in response_activity['activity']:
+                    simple_combined_response.append(response_activity['activity']['text'])
+
+                multi += 1
+
+        self.assertEqual(len(self.state.get_activities()), 10)
+        self.assertEqual(len(self.state.get_activities(simple=True)), 10)
+
+        self.assertEqual(self.state.get_activities(), combined_response[-10:])
+        self.assertEqual(self.state.get_activities(simple=True), simple_combined_response[-10:])
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2'), response_activities['conv2'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv3'), [])
+
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv1')), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv2')), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv3')), 0)
+
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv1', simple=True)), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv2', simple=True)), 10)
+        self.assertEqual(len(self.state.get_activities(conversation_id='conv3', simple=True)), 0)
+
+        self.assertEqual(self.state.get_activities(conversation_id='conv1', simple=True), simple_response_activities['conv1'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv2', simple=True), simple_response_activities['conv2'][-10:])
+        self.assertEqual(self.state.get_activities(conversation_id='conv3', simple=True), [])
+
+        # Test limits
+        self.assertEqual(len(self.state.get_activities(count=50, conversation_id='conv2')), 25)
+        self.assertEqual(len(self.state.get_activities(count=5, conversation_id='conv2')), 5)
+
+        print(simple_response_activities['conv2'])
+        print(self.state.get_activities(count=50, conversation_id='conv2', simple=True))
+
+        self.assertEqual(len(self.state.get_activities(count=50, conversation_id='conv2', simple=True)), 10)
+        self.assertEqual(len(self.state.get_activities(count=5, conversation_id='conv2', simple=True)), 5)
+
+    @staticmethod
+    def _get_type(values):
+        position = 0
+        while True:
+            actual_position = position % 7
+            yield values[actual_position]
+            position += 1
 
 class MongodbStateTestCase(JsonStateTestCase):
     def setUp(self):
