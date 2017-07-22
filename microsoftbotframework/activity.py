@@ -96,13 +96,9 @@ class Activity(Response):
                 if getattr(self, key, None) is None:
                     setattr(self, key, value)
 
-            # We need to modify the slack channel data to changed the user id to the bot id
+            # We need to remove the slack channel data when posting back.
             if key == 'channelData':
                 if 'SlackMessage' in message['channelData']:
-                    if 'user' in message['channelData']['SlackMessage']:
-                        message['channelData']['SlackMessage']['user'] = message['recipient']['id'].split(':')[0]
-                    if 'text' in message['channelData']['SlackMessage']:
-                        message['channelData']['SlackMessage']['user'] = getattr(self, 'text')
                     setattr(self, key, None)
                 else:
                     setattr(self, key, value)
