@@ -814,6 +814,7 @@ class JsonStateTestCase(TestCase):
             yield values[actual_position]
             position += 1
 
+
 class MongodbStateTestCase(JsonStateTestCase):
     def setUp(self):
         self.config = Config(os.getcwd() + '/microsoftbotframework/tests/test_files/mongodb_test_config.yaml')

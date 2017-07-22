@@ -41,7 +41,7 @@ class Response:
                 self.cache = get_cache(cache_arg, config)
                 self.cache_token = True
 
-        if state_arg is not None:
+        if state_arg is not None and state_arg is not False:
             self.state = get_state(state_arg, config)
         else:
             self.state = None
@@ -49,6 +49,9 @@ class Response:
         self.data = {}
         self.headers = None
         self.token = None
+
+        if len(kwargs) > 0:
+            raise(Exception('{} is not a valid argument.'.format(list(kwargs.keys())[0])))
 
     def __getitem__(self, key):
         try:

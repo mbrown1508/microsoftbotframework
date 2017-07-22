@@ -38,9 +38,9 @@ class Activity(Response):
         self.activityId = None
 
         # Used in create Conversation - not is not required and will default to from
-        self.isGroup = kwargs.get('isGroup', False)
-        self.members = kwargs.get('members', None)
-        self.bot = kwargs.get('bot', None)
+        self.isGroup = kwargs.pop('isGroup', False)
+        self.members = kwargs.pop('members', None)
+        self.bot = kwargs.pop('bot', None)
 
         for (prop, default) in self.defaults.items():
             prop_value = kwargs.pop(prop, '_notset')
@@ -54,26 +54,33 @@ class Activity(Response):
 
         fill = kwargs.pop('fill', None)
         reply_to_activity = kwargs.pop('reply_to_activity', None)
-        if fill is not None:
+        if fill is not None and fill is not False:
             self.fill(fill, reply_to_activity)
 
         self.cleanup_none()
 
         # Create timestamp
-        self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
+        if self.timestamp is None:
+            self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
 
         # A nicer way to set conversation = {"id": "asdfsdf"}
         self.conversationId = kwargs.pop('conversationId', None)
-        if self.conversationId is not None:
+        if self.conversationId is not None and self.conversation is None:
             self.conversation = {"id": self.conversationId}
+
+        if fill is not None and fill is not False and self.conversationId is None and 'id' in self.conversation:
+            print(self.conversation)
+            self.conversationId = self.conversation['id']
             
         # Set activityId if passed in args
         activityId_arg = kwargs.pop('activityId', None)
         if activityId_arg is not None:
             self.activityId = activityId_arg
+
+        if activityId_arg is not None and self.id is None:
             self.id = self.activityId
 
-        flip = kwargs.pop('flip', False if fill is None else True)
+        flip = kwargs.pop('flip', False if (fill is None or fill is False) else True)
         if flip:
             self.flip()
 

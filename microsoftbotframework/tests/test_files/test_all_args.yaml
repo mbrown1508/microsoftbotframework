@@ -1,0 +1,8 @@
+other:
+    auth: True
+    app_client_id: asdf
+    app_client_secret: fdsa
+    http_proxy: http://proxy:81
+    https_proxy: https://proxy:81
+    cache: JsonCache
+    state: JsonState
