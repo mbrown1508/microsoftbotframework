@@ -64,7 +64,7 @@ class MsBot(Flask):
         else:
             self.state = None
 
-    def run(self, host=None, port=None, debug=None, load_dotenv=True, **options):
+    def run(self, host=None, port=None, debug=None, **options):
         # Set the flask config if it is in the config file / environment vars
         host = self.mbf_config.get_config(host, 'HOST', root='flask')
         port = self.mbf_config.get_config(port, 'PORT', root='flask')
