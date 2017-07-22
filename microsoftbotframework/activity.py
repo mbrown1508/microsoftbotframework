@@ -43,16 +43,21 @@ class Activity(Response):
         self.bot = kwargs.get('bot', None)
 
         for (prop, default) in self.defaults.items():
-            setattr(self, prop, kwargs.pop(prop, default))
+            prop_value = kwargs.pop(prop, '_notset')
+
+            if prop_value is None:
+                prop_value = '_None'
+            elif prop_value == '_notset':
+                prop_value = default
+
+            setattr(self, prop, prop_value)
 
         fill = kwargs.pop('fill', None)
         reply_to_activity = kwargs.pop('reply_to_activity', None)
         if fill is not None:
             self.fill(fill, reply_to_activity)
 
-        # Clean up the conversationId if Microsoft has added messageid to it. (bug?)
-        #if re.search(';', self.conversation['id']):
-        #    self.conversation['id'] = re.match('[^;]+', self.conversation['id']).group()
+        self.cleanup_none()
 
         # Create timestamp
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
@@ -74,6 +79,14 @@ class Activity(Response):
 
         super(Activity, self).__init__(**kwargs)
 
+    def cleanup_none(self):
+        """
+        Removes the temporary value set for None attributes.
+        """
+        for (prop, default) in self.defaults.items():
+            if getattr(self, prop) == '_None':
+                setattr(self, prop, None)
+
     def flip(self):
         recipient = self.recipient
         self.recipient = self.fromAccount
@@ -89,7 +102,8 @@ class Activity(Response):
 
             # set the activityId to id to make it easy to set in conversation operations.
             if key == 'id':
-                self.activityId = value
+                if getattr(self, 'activityId') is None:
+                    self.activityId = value
 
             # fill the remaining keys if they have not been set using defaults or arguments
             if key not in skip:
