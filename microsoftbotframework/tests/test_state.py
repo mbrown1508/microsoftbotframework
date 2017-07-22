@@ -770,14 +770,9 @@ class JsonStateTestCase(TestCase):
 
         get_type = self._get_type(values)
 
-        response_activities = {}
         simple_response_activities = {}
-
-        combined_response = []
         simple_combined_response = []
 
-        response_activities['conv1'] = []
-        response_activities['conv2'] = []
         simple_response_activities['conv1'] = []
         simple_response_activities['conv2'] = []
 
@@ -788,29 +783,16 @@ class JsonStateTestCase(TestCase):
                 activity, response_activity = self._get_activity(n, conversation_id, type=next(get_type))
                 self.state.save_activity(activity)
 
-                response_activities[conversation_id].append(response_activity)
                 if 'text' in response_activity['activity']:
                     simple_response_activities[conversation_id].append(response_activity['activity']['text'])
 
-                combined_response.append(response_activity)
                 if 'text' in response_activity['activity']:
                     simple_combined_response.append(response_activity['activity']['text'])
 
                 multi += 1
 
-        self.assertEqual(len(self.state.get_activities()), 10)
         self.assertEqual(len(self.state.get_activities(simple=True)), 10)
-
-        self.assertEqual(self.state.get_activities(), combined_response[-10:])
         self.assertEqual(self.state.get_activities(simple=True), simple_combined_response[-10:])
-
-        self.assertEqual(self.state.get_activities(conversation_id='conv1'), response_activities['conv1'][-10:])
-        self.assertEqual(self.state.get_activities(conversation_id='conv2'), response_activities['conv2'][-10:])
-        self.assertEqual(self.state.get_activities(conversation_id='conv3'), [])
-
-        self.assertEqual(len(self.state.get_activities(conversation_id='conv1')), 10)
-        self.assertEqual(len(self.state.get_activities(conversation_id='conv2')), 10)
-        self.assertEqual(len(self.state.get_activities(conversation_id='conv3')), 0)
 
         self.assertEqual(len(self.state.get_activities(conversation_id='conv1', simple=True)), 10)
         self.assertEqual(len(self.state.get_activities(conversation_id='conv2', simple=True)), 10)
@@ -821,12 +803,6 @@ class JsonStateTestCase(TestCase):
         self.assertEqual(self.state.get_activities(conversation_id='conv3', simple=True), [])
 
         # Test limits
-        self.assertEqual(len(self.state.get_activities(count=50, conversation_id='conv2')), 25)
-        self.assertEqual(len(self.state.get_activities(count=5, conversation_id='conv2')), 5)
-
-        print(simple_response_activities['conv2'])
-        print(self.state.get_activities(count=50, conversation_id='conv2', simple=True))
-
         self.assertEqual(len(self.state.get_activities(count=50, conversation_id='conv2', simple=True)), 10)
         self.assertEqual(len(self.state.get_activities(count=5, conversation_id='conv2', simple=True)), 5)
 
