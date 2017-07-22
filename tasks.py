@@ -1,4 +1,4 @@
-from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers
+from microsoftbotframework import ReplyToActivity, SendToConversation, DeleteActivity, CreateConversation, GetActivityMembers, GetConversationMembers, Config
 import celery
 import json
 from time import sleep
@@ -7,15 +7,16 @@ from microsoftbotframework import get_state
 
 def respond_to_conversation_update(message):
     if message["type"] == "conversationUpdate":
-        for member in message['membersAdded']:
-            message_response = 'Conversation Update: Added person was {}'.format(member['name'])
-            ReplyToActivity(fill=message,
-                            text=message_response).send()
+        if 'membersAdded' in message:
+            for member in message['membersAdded']:
+                message_response = 'Conversation Update: Added person was {}'.format(member['name'])
+                ReplyToActivity(fill=message,
+                                text=message_response).send()
 
-        if len(message['membersAdded']) == 0:
-            message_response = 'Conversation Update: No members added'
-            ReplyToActivity(fill=message,
-                            text=message_response).send()
+            if len(message['membersAdded']) == 0:
+                message_response = 'Conversation Update: No members added'
+                ReplyToActivity(fill=message,
+                                text=message_response).send()
 
 
 def synchronous_response(message):
@@ -23,6 +24,11 @@ def synchronous_response(message):
         if 'synchronous' in message["text"] and 'asynchronous' not in message['text']:
             ReplyToActivity(fill=message,
                             text='Synchronous Test: {}'.format(message["text"])).send()
+
+        elif 'config' in message["text"]:
+            config = Config()
+            ReplyToActivity(fill=message,
+                            text='Config: {}'.format(config.config)).send()
 
         elif 'simple history' in message['text']:
             state = get_state()

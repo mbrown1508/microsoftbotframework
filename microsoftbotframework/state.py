@@ -103,7 +103,13 @@ class State(object):
             return value
         else:
             if value['type'] in ['replyToActivity', 'SendToConversation', 'received']:
-                return value['activity']['text']
+                try:
+                    return value['activity']['text']
+                except:
+                    return None
+                    # attachments fail here
+                    pass
+
 
     @staticmethod
     def _simplify_list(list, simple):
@@ -492,10 +498,12 @@ class JsonState(State):
         if conversation_id is not None:
             for activity in reversed(values):
                 if activity['conversation_id'] == conversation_id:
-                    return_values.append(self._simplify_response(activity, simple))
-                    current_count += 1
-                    if count != -1 and current_count == count:
-                        return return_values[::-1]
+                    simplified_response = self._simplify_response(activity, simple)
+                    if simplified_response is not None:
+                        return_values.append(simplified_response)
+                        current_count += 1
+                        if count != -1 and current_count == count:
+                            return return_values[::-1]
             return return_values[::-1]
         else:
             if count == -1:

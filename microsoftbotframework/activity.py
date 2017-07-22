@@ -31,7 +31,7 @@ class Activity(Response):
             'textFormat': None,           # [markdown, plain, xml]
             'timestamp': None,            # UTC
             'topicName': None,
-            'type': None,                 # [contactRelationUpdate, conversationUpdate, deleteUserData, message, ping, typing, endOfConversation]
+            'type': 'message',                 # [contactRelationUpdate, conversationUpdate, deleteUserData, message, ping, typing, endOfConversation]
         }
 
         # Used to grab the activityId for responses
@@ -80,17 +80,28 @@ class Activity(Response):
         self.fromAccount = recipient
 
     def fill(self, message, reply_to_activity=False):
-        skip = ['timestamp', 'localTimestamp', 'entities', 'text', 'id', 'membersAdded', 'membersRemoved', 'attachments']
+        skip = ['timestamp', 'localTimestamp', 'entities', 'text', 'id', 'membersAdded', 'membersRemoved', 'attachments', 'channelData']
         for key, value in message.items():
+            # in code from is called fromAccount, from is a reserved word (note from is still set)
             if key == 'from':
                 if getattr(self, 'fromAccount') is None:
                     setattr(self, 'fromAccount', value)
-            if key == 'type':
-                if getattr(self, 'type') is None:
-                    setattr(self, 'type', 'message')
-            elif key == 'id':
+
+            # set the activityId to id to make it easy to set in conversation operations.
+            if key == 'id':
                 self.activityId = value
-            elif key not in skip:
+
+            # We need to modify the slack channel data to changed the user id to the bot id
+            if key == 'channelData':
+                if 'SlackMessage' in message['channelData']:
+                    if 'user' in message['channelData']['SlackMessage']:
+                        message['channelData']['SlackMessage']['user'] = message['recipient']['id'].split(':')[0]
+                    setattr(self, key, value)
+                else:
+                    setattr(self, key, value)
+
+            # fill the remaining keys if they have not been set using defaults or arguments
+            if key not in skip:
                 if getattr(self, key, None) is None:
                     setattr(self, key, value)
 
