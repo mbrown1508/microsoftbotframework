@@ -12,8 +12,8 @@ import os
 if __name__ == "__main__":
     import microsoftbotframework.runcelery
 
-    bot = MsBot(port=int(os.environ['PORT']), debug=True)
+    bot = MsBot()
     bot.add_process(respond_to_conversation_update)
     bot.add_process(synchronous_response)
     bot.add_process(asynchronous_response)
-    bot.run()
+    bot.run(port=int(os.environ['PORT']), debug=True)
