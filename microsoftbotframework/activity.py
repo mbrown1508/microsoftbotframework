@@ -101,7 +101,7 @@ class Activity(Response):
                 if 'SlackMessage' in message['channelData']:
                     if 'user' in message['channelData']['SlackMessage']:
                         message['channelData']['SlackMessage']['user'] = message['recipient']['id'].split(':')[0]
-                    if 'text' in in message['channelData']['SlackMessage']:
+                    if 'text' in message['channelData']['SlackMessage']:
                         message['channelData']['SlackMessage']['user'] = getattr(self, 'text')
                     setattr(self, key, None)
                 else:
