@@ -94,9 +94,9 @@ class Activity(Response):
             # We need to modify the slack channel data to changed the user id to the bot id
             if key == 'channelData':
                 if 'SlackMessage' in message['channelData']:
-                    if 'user' in message['channelData']['SlackMessage']:
-                        message['channelData']['SlackMessage']['user'] = message['recipient']['id'].split(':')[0]
-                    setattr(self, key, value)
+                    # if 'user' in message['channelData']['SlackMessage']:
+                    #     message['channelData']['SlackMessage']['user'] = message['recipient']['id'].split(':')[0]
+                    setattr(self, key, None)
                 else:
                     setattr(self, key, value)
 
