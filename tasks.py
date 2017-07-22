@@ -72,11 +72,6 @@ def synchronous_response(message):
         elif 'personal' in message['text']:
             personal_message(message, 'Personal Message: {}'.format(message['text']))
 
-        elif 'slack test' in message['text']:
-            ReplyToActivity(fill=message,
-                            channelData={},
-                            text='Delete Test: {}'.format(message["text"])).send()
-
         elif 'asynchronous' not in message["text"]:
             ReplyToActivity(fill=message,
                             text='Nothing was queried').send()
