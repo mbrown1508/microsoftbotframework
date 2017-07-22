@@ -60,12 +60,13 @@ other:
 #### Publish to Heroku
 Create a file called "Procfile" and add the following.
 ```
-web: python main.py
+web: gunicorn main:bot
 ```
 
 Create a file called requirements.txt and add the following.
 ```
 microsoftbotframework
+gunicorn
 ```
 
 Create a file called runtime.txt and add the following.
@@ -73,15 +74,14 @@ Create a file called runtime.txt and add the following.
 python-3.6.0
 ```
 
-Modify main.py to add set the port argument to the environment variable PORT.
+Modify main.py and remove the line bot.run().
 ``` python
 from microsoftbotframework import MsBot
 from tasks import *
 import os
 
-bot = MsBot(port=int(os.environ['PORT']))
+bot = MsBot()
 bot.add_process(echo_response)
-bot.run()
 ```
 
 If you haven't yet install git

@@ -31,5 +31,3 @@ if __name__ == "__main__":
     log = bot.logger
     log.setLevel(logging.INFO)
     log.addHandler(streamHandler)
-
-    bot.run(port=int(os.environ['PORT']))
