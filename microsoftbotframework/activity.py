@@ -98,10 +98,11 @@ class Activity(Response):
 
             # We need to remove the slack channel data when posting back.
             if key == 'channelData':
-                if 'SlackMessage' in message['channelData']:
-                    setattr(self, key, None)
-                else:
-                    setattr(self, key, value)
+                if getattr(self, 'channelData') is None:
+                    if 'SlackMessage' in message['channelData']:
+                        setattr(self, key, None)
+                    else:
+                        setattr(self, key, value)
 
         if reply_to_activity:
             self.replyToId = message['id']
