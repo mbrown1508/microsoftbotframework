@@ -2,12 +2,10 @@
 I use this file to test the library on heroku.
 '''
 
-from microsoftbotframework import Response
+
 import celery
 from tasks import *
-from microsoftbotframework.msbot import MsBot
-import os
-import microsoftbotframework.runcelery
+from microsoftbotframework import MsBot
 import logging
 
 
@@ -26,7 +24,12 @@ bot = MsBot()
 bot.add_process(respond_to_conversation_update)
 bot.add_process(synchronous_response)
 bot.add_process(asynchronous_response)
-#
+
 log = bot.logger
 log.setLevel(logging.INFO)
 log.addHandler(streamHandler)
+
+if __name__ == '__main__':
+    import microsoftbotframework.runcelery
+    print('Here.....')
+    bot.run()
