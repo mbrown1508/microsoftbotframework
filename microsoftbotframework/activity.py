@@ -57,8 +57,6 @@ class Activity(Response):
         if fill is not None and fill is not False:
             self.fill(fill, reply_to_activity)
 
-        self.cleanup_none()
-
         # Create timestamp
         if self.timestamp is None:
             self.timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f%zZ")
@@ -83,6 +81,8 @@ class Activity(Response):
         flip = kwargs.pop('flip', False if (fill is None or fill is False) else True)
         if flip:
             self.flip()
+
+        self.cleanup_none()
 
         super(Activity, self).__init__(**kwargs)
 
