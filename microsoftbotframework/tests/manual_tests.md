@@ -71,3 +71,25 @@ Response, which should be delete after 5 seconds (doesn't work in all channels)
 ```text
 Delete Test: delete
 ```
+
+### History
+
+Test
+```text
+history
+```
+The response should contain the last 3 messages recent / received for both the conversation and all history.
+```text
+{"conversationHistory": [{'_id': 34}, {'_id': 34}, {'_id': 34}], "allHistory": [{'_id': 34}, {'_id': 34}, {'_id': 34}]}
+```
+
+### Simple History
+
+Test
+```text
+simple history
+```
+The response should contain the last 3 messages recent / received for both the conversation and all history. Only the text field should be returned.
+```text
+{"conversationHistory": ["two", "Nothing was queried", "simple history"], "allHistory": ["two", "Nothing was queried", "simple history"]}
+```

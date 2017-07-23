@@ -67,7 +67,6 @@ class Activity(Response):
             self.conversation = {"id": self.conversationId}
 
         if fill is not None and fill is not False and self.conversationId is None and 'id' in self.conversation:
-            print(self.conversation)
             self.conversationId = self.conversation['id']
             
         # Set activityId if passed in args
