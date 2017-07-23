@@ -98,10 +98,10 @@ class MsBot(Flask):
                     self.logger.info('Processing task {} synchronously.'.format(process.__name__))
                     process(json_message)
 
-            resp = Response()
-            resp.headers['User-Agent'] = "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"
-            resp.status_code = 202
-            return resp
+        resp = Response()
+        resp.headers['User-Agent'] = "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"
+        resp.status_code = 202
+        return resp
 
     def add_process(self, process):
         self.processes.append(process)
@@ -114,7 +114,7 @@ class MsBot(Flask):
 
         # Get valid signing keys
         if self.cache_certs:
-            valid_certificates = self._get_redis_certificates()
+            valid_certificates = self._get_redis_certificates(forced_refresh=forced_refresh)
         else:
             valid_certificates = self._get_remote_certificates()
 
@@ -185,12 +185,12 @@ class MsBot(Flask):
     def _has_certificate_expired(expires_at):
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
-    def _get_redis_certificates(self):
+    def _get_redis_certificates(self, forced_refresh=False):
         valid_certificates = self.cache.get("valid_certificates")
         certificates_expire_at = self.cache.get("certificates_expire_at")
 
         if valid_certificates is None or certificates_expire_at is None or \
-                self._has_certificate_expired(certificates_expire_at):
+                self._has_certificate_expired(certificates_expire_at) or forced_refresh:
             self.logger.info('Getting remote certificates')
             return self._get_remote_certificates()
         else:
