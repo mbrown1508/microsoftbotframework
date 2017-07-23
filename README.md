@@ -66,9 +66,9 @@ microsoftbotframework
 gunicorn
 ```
 
-Create a file called "Procfile" and add the following. We are going to use gunicorn as our web server.
+Create a file called "Procfile" and add the following. We are going to use gunicorn as our web server. You can remove "--log-level INFO" or set it to a lower level for production.
 ```
-web: gunicorn heroku:bot -b '0.0.0.0:'$PORT
+web: gunicorn -b '0.0.0.0:'$PORT --log-level INFO main:bot
 ```
 
 Create a file called runtime.txt and add the following.
