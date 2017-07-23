@@ -15,6 +15,8 @@ try:
 except ImportError:
     pass
 
+# import logging
+# logger = logging.getLogger(__name__)
 
 class MsBot(Flask):
     def __init__(self, import_name=None, app_client_id=None, verify_jwt_signature=None,
