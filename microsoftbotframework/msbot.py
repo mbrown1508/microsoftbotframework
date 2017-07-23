@@ -114,7 +114,7 @@ class MsBot(Flask):
 
         # Get valid signing keys
         if self.cache_certs:
-            valid_certificates = self._get_redis_certificates()
+            valid_certificates = self._get_stored_certificates(forced_refresh=forced_refresh)
         else:
             valid_certificates = self._get_remote_certificates()
 
@@ -139,7 +139,6 @@ class MsBot(Flask):
                     decoded_jwt = jwt.decode(token, public_key, algorithms=['RS256'], audience=self.app_client_id)
                 except jwt.exceptions.InvalidTokenError as e:
                     self.logger.warning('{}'.format(e))
-                    return False
 
         if decoded_jwt is None:
             if self.cache_certs and not forced_refresh:
@@ -149,6 +148,9 @@ class MsBot(Flask):
                 return self._verify_token(request, forced_refresh=True)
 
             self.logger.warning('No valid certificate was found to verify JWT')
+            return False
+
+        if decoded_jwt is None:
             return False
 
         # 3. The token contains an issuer claim with value of https://api.botframework.com
@@ -168,11 +170,11 @@ class MsBot(Flask):
         valid_certificates = valid_certificates.json()
 
         if self.cache_certs:
-            self._store_certificates(valid_certificates)
+            self._store_remote_certificates(valid_certificates)
 
         return valid_certificates
 
-    def _store_certificates(self, valid_certificates):
+    def _store_remote_certificates(self, valid_certificates):
         expires_at = datetime.datetime.utcnow() + datetime.timedelta(days=5)
         expires_at_string = expires_at.strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -185,12 +187,12 @@ class MsBot(Flask):
     def _has_certificate_expired(expires_at):
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
-    def _get_redis_certificates(self):
+    def _get_stored_certificates(self, forced_refresh=False):
         valid_certificates = self.cache.get("valid_certificates")
         certificates_expire_at = self.cache.get("certificates_expire_at")
 
         if valid_certificates is None or certificates_expire_at is None or \
-                self._has_certificate_expired(certificates_expire_at):
+                self._has_certificate_expired(certificates_expire_at or forced_refresh):
             self.logger.info('Getting remote certificates')
             return self._get_remote_certificates()
         else:
