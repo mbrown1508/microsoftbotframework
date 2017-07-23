@@ -114,7 +114,7 @@ class MsBot(Flask):
 
         # Get valid signing keys
         if self.cache_certs:
-            valid_certificates = self._get_redis_certificates(forced_refresh=forced_refresh)
+            valid_certificates = self._get_redis_certificates()
         else:
             valid_certificates = self._get_remote_certificates()
 
@@ -185,12 +185,12 @@ class MsBot(Flask):
     def _has_certificate_expired(expires_at):
         return datetime.datetime.utcnow() > datetime.datetime.strptime(expires_at, '%Y-%m-%dT%H:%M:%S')
 
-    def _get_redis_certificates(self, forced_refresh=False):
+    def _get_redis_certificates(self):
         valid_certificates = self.cache.get("valid_certificates")
         certificates_expire_at = self.cache.get("certificates_expire_at")
 
         if valid_certificates is None or certificates_expire_at is None or \
-                self._has_certificate_expired(certificates_expire_at) or forced_refresh:
+                self._has_certificate_expired(certificates_expire_at):
             self.logger.info('Getting remote certificates')
             return self._get_remote_certificates()
         else:
