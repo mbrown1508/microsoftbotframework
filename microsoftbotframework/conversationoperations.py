@@ -1,4 +1,4 @@
-gfrom .activity import Activity
+from .activity import Activity
 
 
 class ReplyToActivity(Activity):
