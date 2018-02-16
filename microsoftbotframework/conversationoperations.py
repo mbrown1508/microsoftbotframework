@@ -98,8 +98,8 @@ class CreateConversation(Activity):
         # by changing 'Id' to 'id'
         response_json = response.json()
         if 'Id' in response_json and 'id' not in response_json:
-            response._content = response._content.replace(b"\"id\":",
-                                                          b"\"Id\":")
+            response._content = response._content.replace(b"\"Id\":",
+                                                          b"\"id\":")
         response_json = response.json()
         self.save_response('CreateConversation',
                            response_json['id'],
