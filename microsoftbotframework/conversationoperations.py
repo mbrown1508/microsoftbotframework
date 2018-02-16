@@ -1,4 +1,4 @@
-from .activity import Activity
+gfrom .activity import Activity
 
 
 class ReplyToActivity(Activity):
@@ -84,11 +84,11 @@ class CreateConversation(Activity):
             'self': self.to_dict(),
         }
 
-        if len(response_json['members']) > 1:
-            response_json['isGroup'] = True
+        if len(request_json['members']) > 1:
+            request_json['isGroup'] = True
 
         if self.topicName is not None:
-            response_json['topicName'] = self.topicName
+            request_json['topicName'] = self.topicName
 
         response_url = self.urljoin(self.serviceUrl, "/v3/conversations")
 
