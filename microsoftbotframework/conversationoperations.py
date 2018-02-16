@@ -94,11 +94,14 @@ class CreateConversation(Activity):
 
         response = self._request(response_url, 'post', response_json)
 
-        self.save_response('CreateConversation',
-                           response.json()['id'],
-                           response_json,
-                           {},
-                           response.json())
+        # skype for business is not returning the id of the newly created
+        # conversation. Only save the response if the id exists
+        if 'id' in response.json():
+            self.save_response('CreateConversation',
+                               response.json()['id'],
+                               response_json,
+                               {},
+                               response.json())
         return response
 
 
