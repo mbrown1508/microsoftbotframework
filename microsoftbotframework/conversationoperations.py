@@ -94,12 +94,13 @@ class CreateConversation(Activity):
 
         response = self._request(response_url, 'post', request_json)
 
-        # Skype for Business returns the key 'Id', not 'id', fix the dict to
-        # change 'Id' to 'id'
+        # Skype for Business returns the key 'Id', not 'id', fix the response
+        # by changing 'Id' to 'id'
         response_json = response.json()
         if 'Id' in response_json and 'id' not in response_json:
-            response_json['id'] = response_json['Id']
-            del response_json['Id']
+            response._content = response._content.replace(b"\"id\":",
+                                                          b"\"Id\":")
+        response_json = response.json()
         self.save_response('CreateConversation',
                            response_json['id'],
                            request_json,
