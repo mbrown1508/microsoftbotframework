@@ -76,7 +76,7 @@ class CreateConversation(Activity):
         self.channelId = None
         self.conversation = None
 
-        response_json = {
+        request_json = {
             'bot': self.fromAccount if self.bot is None else self.bot,
             'isGroup': False if self.isGroup is None else self.isGroup,
             'members': [self.recipient] if self.members is None else self.members,
@@ -84,21 +84,28 @@ class CreateConversation(Activity):
             'self': self.to_dict(),
         }
 
-        if len(response_json['members']) > 1:
-            response_json['isGroup'] = True
+        if len(request_json['members']) > 1:
+            request_json['isGroup'] = True
 
         if self.topicName is not None:
-            response_json['topicName'] = self.topicName
+            request_json['topicName'] = self.topicName
 
         response_url = self.urljoin(self.serviceUrl, "/v3/conversations")
 
-        response = self._request(response_url, 'post', response_json)
+        response = self._request(response_url, 'post', request_json)
 
+        # Skype for Business returns the key 'Id', not 'id', fix the response
+        # by changing 'Id' to 'id'
+        response_json = response.json()
+        if 'Id' in response_json and 'id' not in response_json:
+            response._content = response._content.replace(b"\"Id\":",
+                                                          b"\"id\":")
+        response_json = response.json()
         self.save_response('CreateConversation',
-                           response.json()['id'],
-                           response_json,
+                           response_json['id'],
+                           request_json,
                            {},
-                           response.json())
+                           response_json)
         return response
 
 

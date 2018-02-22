@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='microsoftbotframework',
-      version='0.3.0',
+      version='0.3.1',
       description='A wrapper for the microsoft bot framework API',
       classifiers=[
             'Development Status :: 3 - Alpha',
