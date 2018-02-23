@@ -81,7 +81,7 @@ class CreateConversation(Activity):
             'isGroup': False if self.isGroup is None else self.isGroup,
             'members': [self.recipient] if self.members is None else self.members,
             'channelData': self.channelData,
-            'self': self.to_dict(),
+            'activity': self.to_dict(),
         }
 
         if len(request_json['members']) > 1:
