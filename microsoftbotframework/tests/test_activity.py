@@ -1,5 +1,4 @@
 from unittest import TestCase
-from mock import patch
 from ..config import Config
 from ..activity import Activity
 import os
