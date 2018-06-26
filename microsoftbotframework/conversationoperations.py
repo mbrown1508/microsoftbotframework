@@ -5,13 +5,13 @@ class ReplyToActivity(Activity):
     def __init__(self, **kwargs):
         super(ReplyToActivity, self).__init__(reply_to_activity=True, **kwargs)
 
-    def send(self):
+    def send(self, timeout_seconds):
         response_url = self.urljoin(self.serviceUrl,
                                     "/v3/conversations/{}/activities/{}".format(
                                     self.conversation['id'],
                                     self.activityId))
 
-        response = self._request(response_url, 'post', self.to_dict())
+        response = self._request(response_url, 'post', self.to_dict(), timeout_seconds)
 
         self.save_response('ReplyToActivity',
                            self.conversation['id'],
@@ -25,12 +25,12 @@ class SendToConversation(Activity):
     def __init__(self, **kwargs):
         super(SendToConversation, self).__init__(**kwargs)
 
-    def send(self):
+    def send(self, timeout_seconds):
         response_url = self.urljoin(self.serviceUrl,
                                     "/v3/conversations/{}/activities".format(
                                         self.conversation['id']))
 
-        response = self._request(response_url, 'post', self.to_dict())
+        response = self._request(response_url, 'post', self.to_dict(), timeout_seconds)
 
         self.save_response('SendToConversation',
                            self.conversation['id'],
@@ -69,7 +69,7 @@ class CreateConversation(Activity):
     def __init__(self, **kwargs):
         super(CreateConversation, self).__init__(**kwargs)
 
-    def send(self):
+    def send(self, timeout_seconds):
         # make sure that we remove and team or channel data from the request when working in teams.
         if self.channelData is not None and 'tenant' in self.channelData:
             self.channelData = {"tenant": {"id": self.channelData["tenant"]["id"]}}
@@ -92,7 +92,7 @@ class CreateConversation(Activity):
 
         response_url = self.urljoin(self.serviceUrl, "/v3/conversations")
 
-        response = self._request(response_url, 'post', request_json)
+        response = self._request(response_url, 'post', request_json, timeout_seconds)
 
         # Skype for Business returns the key 'Id', not 'id', fix the response
         # by changing 'Id' to 'id'
