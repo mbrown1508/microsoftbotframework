@@ -16,6 +16,7 @@ class Response:
         config_location = kwargs.pop('config_location', None)
         config = Config(config_location)
 
+        self.timeout_seconds = kwargs.pop('timeout_seconds', None)
         self.auth = config.get_config(kwargs.pop('auth', True), 'AUTH')
         self.app_client_id = config.get_config(kwargs.pop('app_client_id', None), 'APP_CLIENT_ID')
         self.app_client_secret = config.get_config(kwargs.pop('app_client_secret', None), 'APP_CLIENT_SECRET')
@@ -72,14 +73,14 @@ class Response:
     def __contains__(self, key):
         return True if key in self.data else False
 
-    def _get_remote_auth_token(self, timeout_seconds=None):
+    def _get_remote_auth_token(self):
         response_auth_url = "https://login.microsoftonline.com/botframework.com/oauth2/v2.0/token"
         data = {"grant_type": "client_credentials",
                 "client_id": self.app_client_id,
                 "client_secret": self.app_client_secret,
                 "scope": "https://api.botframework.com/.default"
                 }
-        response = requests.post(response_auth_url, data, timeout=timeout_seconds)
+        response = requests.post(response_auth_url, data, timeout=self.timeout_seconds)
         response_data = response.json()
         response.raise_for_status()
 
@@ -134,7 +135,7 @@ class Response:
             self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"]),
                             "User-Agent": "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"}
 
-    def _request(self, response_url, method, response_json=None,  timeout_seconds=None):
+    def _request(self, response_url, method, response_json=None,):
         self._set_header()
 
         if method == 'get':
@@ -151,7 +152,7 @@ class Response:
         logger.info('response_headers: {}'.format(json.dumps(self.headers)))
         logger.info('response_json: {}'.format(json.dumps(response_json)))
 
-        post_response = request_method(response_url, timeout=timeout_seconds, json=response_json, headers=self.headers)
+        post_response = request_method(response_url, timeout=self.timeout_seconds, json=response_json, headers=self.headers)
 
         if 300 > post_response.status_code >= 200:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text).replace('\n', '').replace('\r', ''))
