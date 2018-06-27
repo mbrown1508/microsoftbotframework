@@ -1,7 +1,10 @@
+import os
 from unittest import TestCase
+
+from requests.exceptions import ConnectionError, HTTPError, Timeout
+
 from ..config import Config
 from ..activity import Activity
-import os
 from ..cache import JsonCache
 from ..state import JsonState
 
@@ -18,7 +21,7 @@ class ResponseTestCase(TestCase):
         os.environ = {}
 
     @staticmethod
-    def _get_full_arg_activity(fill=False, reply_to_activity=False, flip=False):
+    def _get_full_arg_activity(fill=False, reply_to_activity=False, flip=False, timeout_seconds=None):
         return Activity(
             action=None,
             attachments=[{'url': 'http://attachment'}],          # Attachment[]
@@ -55,6 +58,7 @@ class ResponseTestCase(TestCase):
             fill=fill,
             reply_to_activity=reply_to_activity,
             flip=flip,
+            timeout_seconds=timeout_seconds,
         )
 
     @staticmethod
@@ -311,3 +315,25 @@ class ResponseTestCase(TestCase):
         self._clear_environ()
         activity = Activity()
         self.assertEqual(len(activity.timestamp), 27)
+
+    def test_timeout_set_and_used(self):
+        # ensure that the timeout is set on the Activity intance
+        timeout_seconds = 2
+        self._clear_environ()
+        activity = self._get_full_arg_activity(timeout_seconds=timeout_seconds)
+        self.assertEqual(activity.timeout_seconds, timeout_seconds)
+        response_url = 'https://www.google.com/'
+
+        # ensure that we don't hit a timeout on the below request
+        method = 'get'
+        requests_response = activity._request(response_url, method, response_json=None)
+
+        # throw timeout exception if we set it too low on _request
+        timeout_seconds = 0.01
+        activity = self._get_full_arg_activity(timeout_seconds=timeout_seconds)
+        with self.assertRaises(Timeout):
+            activity._request(response_url, method, response_json=None)
+
+        # throw timeout exception if we set it too low on _get_remote_auth_token
+        with self.assertRaises(Timeout):
+            activity._get_remote_auth_token()
