@@ -34,9 +34,6 @@ class MsBot(Flask):
 
         super().__init__(name, *args, **kwargs)
         self.add_url_rule('/api/messages', view_func=self._message_post, methods=['POST'])
-        
-        if not config_location:
-            raise(Exception('Config yaml location has not been set.'))
 
         self.mbf_config = Config(config_location=config_location)
 
