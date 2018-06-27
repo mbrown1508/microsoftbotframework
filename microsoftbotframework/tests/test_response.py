@@ -1,4 +1,8 @@
 from unittest import TestCase
+from unittest.mock import patch, Mock, MagicMock
+
+from requests.exceptions import ConnectionError, HTTPError, Timeout
+
 from ..response import Response
 import os
 from ..cache import JsonCache
@@ -6,6 +10,27 @@ from ..state import JsonState
 
 
 class ResponseTestCase(TestCase):
+    def _mock_response(
+            self,
+            status_code=200,
+            content=b'CONTENT',
+            raise_for_status=None):
+        """
+        Build a mock for each response, include errors and content data
+        """
+        mock_resp = Mock()
+        # mock raise_for_status call w/optional error
+        mock_resp.raise_for_status = Mock()
+        mock_resp.status_code = status_code
+        if raise_for_status:
+            mock_resp.raise_for_status.side_effect = raise_for_status
+            return mock_resp
+        mock_resp.content = content
+        mock_resp.iter_content = Mock()
+        iter_result =  iter([bytes([b]) for b in content])
+        mock_resp.iter_content.return_value = iter_result
+        return mock_resp
+
     def setUp(self):
         pass
 
@@ -110,3 +135,37 @@ class ResponseTestCase(TestCase):
         self.assertEqual(Response.urljoin('https://asdf.com', '/something'), 'https://asdf.com/something')
         self.assertEqual(Response.urljoin('https://asdf.com/', 'something'), 'https://asdf.com/something')
         self.assertEqual(Response.urljoin('https://asdf.com/', '/something'), 'https://asdf.com/something')
+
+    @patch('microsoftbotframework.response.requests.get')
+    def test_request_raises_exceptions(self, mock_get):
+        """
+        This test ensures that the timeout_seconds is set correctly, and that requests exceptions are raised by
+        the _request method
+        """
+        self._clear_environ()
+        timeout_seconds = 2
+        response = Response(config_location='microsoftbotframework/tests/test_files/test_auth_disable.yaml',
+                            timeout_seconds=timeout_seconds)
+        self.assertEqual(response.timeout_seconds, timeout_seconds)
+
+        response_url = 'https://asdf.com/'
+        methods = ['get', 'post', 'delete']
+
+        for method in methods:
+            # ConnectionError case
+            mock_return_value = self._mock_response(status_code=None, raise_for_status=ConnectionError())
+            mock_get.return_value = mock_return_value
+            with self.assertRaises(ConnectionError):
+                response._request(response_url, method, response_json=None)
+
+            # HTTPError case
+            mock_return_value = self._mock_response(status_code=404, raise_for_status=HTTPError())
+            mock_get.return_value = mock_return_value
+            with self.assertRaises(HTTPError):
+                response._request(response_url, method, response_json=None)
+
+            # Timeout case
+            mock_return_value = self._mock_response(status_code=None, raise_for_status=Timeout())
+            mock_get.return_value = mock_return_value
+            with self.assertRaises(Timeout):
+                response._request(response_url, method, response_json=None)
