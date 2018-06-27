@@ -169,3 +169,35 @@ class ResponseTestCase(TestCase):
             mock_get.return_value = mock_return_value
             with self.assertRaises(Timeout):
                 response._request(response_url, method, response_json=None)
+
+    @patch('microsoftbotframework.response.requests.post')
+    def test_get_remote_auth_token_raises_exceptions(self, mock_post):
+        """
+        This test ensures that the timeout_seconds is set correctly, and that requests exceptions are raised by
+        the _get_remote_auth_token method
+        """
+        self._clear_environ()
+        timeout_seconds = 2
+        response = Response(config_location='microsoftbotframework/tests/test_files/test_all_args.yaml',
+                            timeout_seconds=timeout_seconds)
+        self.assertEqual(response.timeout_seconds, timeout_seconds)
+
+        response_url = 'https://asdf.com/'
+
+        # ConnectionError case
+        mock_return_value = self._mock_response(status_code=None, raise_for_status=ConnectionError())
+        mock_get.return_value = mock_return_value
+        with self.assertRaises(ConnectionError):
+            response._get_remote_auth_token()
+
+        # HTTPError case
+        mock_return_value = self._mock_response(status_code=404, raise_for_status=HTTPError())
+        mock_get.return_value = mock_return_value
+        with self.assertRaises(HTTPError):
+            response._get_remote_auth_token()
+
+        # Timeout case
+        mock_return_value = self._mock_response(status_code=None, raise_for_status=Timeout())
+        mock_get.return_value = mock_return_value
+        with self.assertRaises(Timeout):
+            response._get_remote_auth_token()
