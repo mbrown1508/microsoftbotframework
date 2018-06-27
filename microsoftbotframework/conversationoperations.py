@@ -5,13 +5,13 @@ class ReplyToActivity(Activity):
     def __init__(self, **kwargs):
         super(ReplyToActivity, self).__init__(reply_to_activity=True, **kwargs)
 
-    def send(self, timeout_seconds):
+    def send(self):
         response_url = self.urljoin(self.serviceUrl,
                                     "/v3/conversations/{}/activities/{}".format(
                                     self.conversation['id'],
                                     self.activityId))
 
-        response = self._request(response_url, 'post', self.to_dict(), timeout_seconds)
+        response = self._request(response_url, 'post', self.to_dict(), self.timeout_seconds)
 
         self.save_response('ReplyToActivity',
                            self.conversation['id'],
@@ -25,12 +25,12 @@ class SendToConversation(Activity):
     def __init__(self, **kwargs):
         super(SendToConversation, self).__init__(**kwargs)
 
-    def send(self, timeout_seconds):
+    def send(self):
         response_url = self.urljoin(self.serviceUrl,
                                     "/v3/conversations/{}/activities".format(
                                         self.conversation['id']))
 
-        response = self._request(response_url, 'post', self.to_dict(), timeout_seconds)
+        response = self._request(response_url, 'post', self.to_dict(), self.timeout_seconds)
 
         self.save_response('SendToConversation',
                            self.conversation['id'],
