@@ -161,8 +161,10 @@ class ResponseTestCase(TestCase):
         with self.assertRaises(Timeout):
             response._get_remote_auth_token()
 
+    @patch('microsoftbotframework.response.requests.delete')
+    @patch('microsoftbotframework.response.requests.post')
     @patch('microsoftbotframework.response.requests.get')
-    def test_request_raises_exceptions(self, mock_get):
+    def test_request_raises_exceptions(self, mock_get, mock_post, mock_delete):
         """
         This test ensures that the timeout_seconds is set correctly, and that requests exceptions are raised by
         the _request method
@@ -173,24 +175,24 @@ class ResponseTestCase(TestCase):
                             timeout_seconds=timeout_seconds)
 
         response_url = 'https://asdf.com/'
-        methods = ['get', 'post', 'delete']
+        method_mockmethod_pairs = [('get', mock_get), ('post', mock_post), ('delete', mock_delete)]
 
-        for method in methods:
+        for method, mockmethod in method_mockmethod_pairs:
             # ConnectionError case
             mock_return_value = self._mock_response(status_code=None, raise_for_status=ConnectionError())
-            mock_get.return_value = mock_return_value
+            mockmethod.return_value = mock_return_value
             with self.assertRaises(ConnectionError):
                 response._request(response_url, method, response_json=None)
 
             # HTTPError case
             mock_return_value = self._mock_response(status_code=404, raise_for_status=HTTPError())
-            mock_get.return_value = mock_return_value
+            mockmethod.return_value = mock_return_value
             with self.assertRaises(HTTPError):
                 response._request(response_url, method, response_json=None)
 
             # Timeout case
             mock_return_value = self._mock_response(status_code=None, raise_for_status=Timeout())
-            mock_get.return_value = mock_return_value
+            mockmethod.return_value = mock_return_value
             with self.assertRaises(Timeout):
                 response._request(response_url, method, response_json=None)
 
