@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='microsoftbotframework',
-      version='0.3.1',
+      version='0.3.3',
       description='A wrapper for the microsoft bot framework API',
       classifiers=[
             'Development Status :: 3 - Alpha',
@@ -22,8 +22,9 @@ setup(name='microsoftbotframework',
             "requests",
             "pyyaml",
       ],
+      extras_require={'test': ['nose', 'redis',  'pymongo']},
       include_package_data=True,
       zip_safe=False,
       test_suite='nose.collector',
-      tests_require=['nose'],
+      tests_require=['nose', 'redis', 'pymongo'],
       )
