@@ -170,8 +170,8 @@ class MsBot(Flask):
 
         valid_signing_keys_url = openid_metadata.json()["jwks_uri"]
         valid_certificates = requests.get(valid_signing_keys_url, timeout=self.timeout_seconds)
-        valid_certificates = valid_certificates.json()
         valid_certificates.raise_for_status()
+        valid_certificates = valid_certificates.json()
 
         if self.cache_certs:
             self._store_remote_certificates(valid_certificates)

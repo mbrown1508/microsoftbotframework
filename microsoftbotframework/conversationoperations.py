@@ -11,7 +11,7 @@ class ReplyToActivity(Activity):
                                     self.conversation['id'],
                                     self.activityId))
 
-        response = self._request(response_url, 'post', self.to_dict(), self.timeout_seconds)
+        response = self._request(response_url, 'post', self.to_dict())
 
         self.save_response('ReplyToActivity',
                            self.conversation['id'],
@@ -30,7 +30,7 @@ class SendToConversation(Activity):
                                     "/v3/conversations/{}/activities".format(
                                         self.conversation['id']))
 
-        response = self._request(response_url, 'post', self.to_dict(), self.timeout_seconds)
+        response = self._request(response_url, 'post', self.to_dict())
 
         self.save_response('SendToConversation',
                            self.conversation['id'],
@@ -69,7 +69,7 @@ class CreateConversation(Activity):
     def __init__(self, **kwargs):
         super(CreateConversation, self).__init__(**kwargs)
 
-    def send(self, timeout_seconds):
+    def send(self):
         # make sure that we remove and team or channel data from the request when working in teams.
         if self.channelData is not None and 'tenant' in self.channelData:
             self.channelData = {"tenant": {"id": self.channelData["tenant"]["id"]}}
@@ -92,7 +92,7 @@ class CreateConversation(Activity):
 
         response_url = self.urljoin(self.serviceUrl, "/v3/conversations")
 
-        response = self._request(response_url, 'post', request_json, timeout_seconds)
+        response = self._request(response_url, 'post', request_json)
 
         # Skype for Business returns the key 'Id', not 'id', fix the response
         # by changing 'Id' to 'id'

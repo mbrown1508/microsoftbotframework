@@ -81,8 +81,8 @@ class Response:
                 "scope": "https://api.botframework.com/.default"
                 }
         response = requests.post(response_auth_url, data, timeout=self.timeout_seconds)
-        response_data = response.json()
         response.raise_for_status()
+        response_data = response.json()
 
         if self.cache_token:
             self._store_auth_token(token_type=response_data["token_type"],
@@ -135,7 +135,7 @@ class Response:
             self.headers = {"Authorization": "{} {}".format(token["token_type"], token["access_token"]),
                             "User-Agent": "Microsoft-BotFramework/3.1 (BotBuilder Node.js/3.7.0)"}
 
-    def _request(self, response_url, method, response_json=None,):
+    def _request(self, response_url, method, response_json=None):
         self._set_header()
 
         if method == 'get':
@@ -153,13 +153,13 @@ class Response:
         logger.info('response_json: {}'.format(json.dumps(response_json)))
 
         post_response = request_method(response_url, timeout=self.timeout_seconds, json=response_json, headers=self.headers)
+        post_response.raise_for_status()
 
         if 300 > post_response.status_code >= 200:
             logger.info('Successfully posted to Microsoft Bot Connector. {}'.format(post_response.text).replace('\n', '').replace('\r', ''))
         else:
             logger.error('Error posting to Microsoft Bot Connector. Status Code: {}, Text {}'
                          .format(post_response.status_code, post_response.text))
-        post_response.raise_for_status()
         return post_response
 
     @staticmethod
