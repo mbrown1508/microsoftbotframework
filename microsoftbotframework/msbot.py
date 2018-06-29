@@ -18,7 +18,7 @@ except ImportError:
 
 class MsBot(Flask):
     def __init__(self, import_name=None, app_client_id=None, verify_jwt_signature=None,
-                 config_location=None, cache=None, state=None, *args, **kwargs):
+                 config_location=None, cache=None, state=None, timeout_seconds=None, *args, **kwargs):
 
         depreciated_host = kwargs.pop('host', None)
         depreciated_port = kwargs.pop('port', None)
@@ -29,6 +29,8 @@ class MsBot(Flask):
 
         # This is left as a option incase the user wants to extend the MsBot object
         name = __name__ if import_name is None else import_name
+
+        self.timeout_seconds = timeout_seconds
 
         super().__init__(name, *args, **kwargs)
         self.add_url_rule('/api/messages', view_func=self._message_post, methods=['POST'])
@@ -163,10 +165,12 @@ class MsBot(Flask):
 
     def _get_remote_certificates(self):
         openid_metadata_url = "https://login.botframework.com/v1/.well-known/openidconfiguration"
-        openid_metadata = requests.get(openid_metadata_url)
+        openid_metadata = requests.get(openid_metadata_url, timeout=self.timeout_seconds)
+        openid_metadata.raise_for_status()
 
         valid_signing_keys_url = openid_metadata.json()["jwks_uri"]
-        valid_certificates = requests.get(valid_signing_keys_url)
+        valid_certificates = requests.get(valid_signing_keys_url, timeout=self.timeout_seconds)
+        valid_certificates.raise_for_status()
         valid_certificates = valid_certificates.json()
 
         if self.cache_certs:
