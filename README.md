@@ -86,3 +86,13 @@ Signup for a Heroku account here: https://www.heroku.com/ and create a new app. 
 Go back into the Microsoft MyBots tab and update the Messaging Endpoint to be the Domain found in the Heroku settings tab. Make sure you add "/api/messages" at the of the url.
 
 Congratulations you should now be able to chat to your bot on Skype!
+
+### Running this library's tests
+1. Make sure that you have the required libraries installed from setup.py tests_require section with `pip install -e .[test]`
+2. Make sure redis and mongodb are installed locally
+3. Turn on redis: `redis-server`
+4. Turn on mongobd: `mongod`
+5. Open a terminal in the root of this directory
+6. Run the tests with one of the below options
+    - `nosetests` (requires step 1 libraries to be installed)
+    - `python setup.py test` (doesn't require step 1 libraries to be installed)

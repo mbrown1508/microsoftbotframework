@@ -81,7 +81,7 @@ class CreateConversation(Activity):
             'isGroup': False if self.isGroup is None else self.isGroup,
             'members': [self.recipient] if self.members is None else self.members,
             'channelData': self.channelData,
-            'self': self.to_dict(),
+            'activity': self.to_dict(),
         }
 
         if len(request_json['members']) > 1:
@@ -101,11 +101,13 @@ class CreateConversation(Activity):
             response._content = response._content.replace(b"\"Id\":",
                                                           b"\"id\":")
         response_json = response.json()
-        self.save_response('CreateConversation',
-                           response_json['id'],
-                           request_json,
-                           {},
-                           response_json)
+        # save the response if it worked, http error codes won't save respones
+        if 'id' in response_json:
+            self.save_response('CreateConversation',
+                               response_json['id'],
+                               request_json,
+                               {},
+                               response_json)
         return response
 
 

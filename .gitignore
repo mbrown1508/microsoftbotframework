@@ -61,3 +61,4 @@ crashlytics-build.properties
 /build/
 /.eggs/
 /.coverage
+/.pytest_cache
